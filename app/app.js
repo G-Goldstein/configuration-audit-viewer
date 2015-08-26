@@ -164,6 +164,11 @@ myApp.controller('ConfigAuditController', ['$log', 'DataService', function($log,
                 }
               }
             }
+          } else {
+            for (var coO = 0; coO < coFile.overrideLevels.length; coO++ ) {
+              var coOverrideLevel = coFile.overrideLevels[coO];
+              coOverrideLevel.existsInEnvironment[envE] = false;
+            }
           }
         }
       }
