@@ -1,0 +1,46 @@
+<!doctype html>
+<html ng-app="configAuditViewer">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="description" content="Configuration audit viewer">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  
+  <title>Configuration audit</title>
+  
+  <link rel="stylesheet" href="app.css">
+</head>
+<body>
+
+<section>
+  <header>
+    <h1>Configuration audit</h1>
+  </header>
+  <article ng-controller="ConfigAuditController as configViewer">
+    <ul>
+      <li ng-repeat="configFile in configViewer.comparisonObject">
+      <div class="configFile configFile-{{configFile.highlight}} config-{{configViewer.configFileColor(configFile)}}-{{configViewer.openOrClosed(configFile)}}">
+        <div class="configFileHeader noSelect" ng-mouseover="configFile.highlight=true" ng-mouseleave="configFile.highlight=false" ng-click="configFile.show = !configFile.show">{{configFile.relativePath}}{{configFile.fileName}}</div>
+        <ul ng-show="configFile.show">
+          <li class="overrideLevel overrideLevel-{{overrideLevel.highlight}} config-{{configViewer.overrideLevelColor(overrideLevel)}}-{{configViewer.openOrClosed(overrideLevel)}}" ng-repeat="overrideLevel in configFile.overrideLevels">
+            <div class="overrideLevelHeader noSelect" ng-mouseover="overrideLevel.highlight=true" ng-mouseleave="overrideLevel.highlight=false" ng-click="overrideLevel.show = !overrideLevel.show">{{overrideLevel.levelDescription}}</div ng-mouseover="overrideLevel.highlight">
+              <div class="tableContainer" ng-show="overrideLevel.show"><table>
+                <tr class="configLineMatching-{{configViewer.matchingValuesForKey(keyValue)}}-{{configViewer.evenOdd($index)}}" ng-repeat="keyValue in overrideLevel.keyValues | orderBy:'key'">
+                  <td class="key">{{keyValue.key}}</td>
+                  <td class="value-{{keyValue.existsInEnvironment[$index]}}-{{configViewer.evenOdd($parent.$index)}} columns{{configViewer.environmentCount()}}" ng-repeat="value in keyValue.valueInEnvironment track by $index">{{value}}</td>
+                </tr>
+              </table></div>
+          </li>
+        </ul>
+        </div>
+      </li>
+    </ul>
+  </article>
+</section>
+  
+  <script src="bower_components/angular/angular.js"></script>
+  <script src="bower_components/angular-route/angular-route.js"></script>
+  <script src="bower_components/angular-mocks/angular-mocks.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
