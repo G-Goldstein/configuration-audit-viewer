@@ -25,9 +25,9 @@
           <li class="overrideLevel overrideLevel-{{overrideLevel.highlight}} config-{{configViewer.overrideLevelColor(overrideLevel)}}-{{configViewer.openOrClosed(overrideLevel)}}" ng-repeat="overrideLevel in configFile.overrideLevels">
             <div class="overrideLevelHeader noSelect" ng-mouseover="overrideLevel.highlight=true" ng-mouseleave="overrideLevel.highlight=false" ng-click="overrideLevel.show = !overrideLevel.show">{{overrideLevel.levelDescription}}</div ng-mouseover="overrideLevel.highlight">
               <div class="tableContainer" ng-show="overrideLevel.show"><table>
-                <tr class="configLineMatching-{{configViewer.matchingValuesForKey(keyValue)}}-{{configViewer.evenOdd($index)}}" ng-repeat="keyValue in overrideLevel.keyValues | orderBy:'key'">
-                  <td class="key">{{keyValue.key}}</td>
-                  <td class="value-{{keyValue.existsInEnvironment[$index]}}-{{configViewer.evenOdd($parent.$index)}} columns{{configViewer.environmentCount()}}" ng-repeat="value in keyValue.valueInEnvironment track by $index">{{value}}</td>
+                <tr ng-class="{ evenRow: !($index % 2), oddRow: !!($index % 2) }" ng-repeat="keyValue in overrideLevel.keyValues | orderBy:'key'">
+                  <td class="key value-{{configViewer.valueColor(keyValue)}}">{{keyValue.key}}</td>
+                  <td ng-repeat="value in keyValue.valueInEnvironment track by $index">{{value}}</td>
                 </tr>
               </table></div>
           </li>

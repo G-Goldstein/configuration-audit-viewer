@@ -34,11 +34,11 @@ ul {
 }
 
 .configFile-true {
-    background-color: #e3e3e3;
+    background-color: #dddddd;
 }
 
 .configFile-false {
-    background-color: #eeeeee;
+    background-color: #e3e3e3;
 }
 
 .overrideLevelHeader {
@@ -57,11 +57,11 @@ ul {
 }
 
 .overrideLevel-true {
-    background-color: #f3f3f3;
+    background-color: #eeeeee;
 }
 
 .overrideLevel-false {
-    background-color: #ffffff;
+    background-color: #f3f3f3;
 }
 
 .config-match-closed {
@@ -117,56 +117,40 @@ td {
     padding: 3px;
 }
 
-.key {width: 20%; font-weight:bold;}
+.key {width: 20%; font-weight:bold; padding-left: 13px;}
+
+.oddRow {background-color: #f4f4f4;}
+
+.evenRow {background-color: #fefefe;}
+
+.value-matching {
+    background-image: 
+    linear-gradient(
+      90deg,
+      #80FF40 10px,
+      #f0f0f0 10px,
+      #f0f0f0 11px,
+      transparent 10px);
+}
+.value-difference {
+    background-image: 
+    linear-gradient(
+      90deg,
+      #FFB040 10px,
+      #f0f0f0 10px,
+      #f0f0f0 11px,
+      transparent 10px);
+}
+.value-absence {
+    background-image:
+    linear-gradient(
+      90deg,
+      #FF4040 10px,
+      #f0f0f0 10px,
+      #f0f0f0 11px,
+      transparent 10px);
+}
 .columns1 {width: 78%;}
 .columns2 {width: 39%;}
 .columns3 {width: 26%;}
 
-/*Good*/
-.configLineMatching-true-even {
-    background-color: #d0ffc0;
-}
-.configLineMatching-true-odd {
-    background-color: #d8ffc8;
-    /*background-color: #b7e3b7;*/
-}
-
-/*Warning*/
-.configLineMatching-false-even {
-    background-color: #ffe0c0;
-}
-.configLineMatching-false-odd {
-    background-color: #ffe8c8 ;
-    /*background-color: #d4e3b7;*/
-}
-
-/*Bad*/
-.value-false-even {
-    background-color: #ffc0c0;
-}
-.value-false-odd {
-    background-color: #ffc8c8;
-    /*background-color: #f1c6a9;*/
-}
-
-/*
-.configLineMatching-true-even {
-    background-color: #b0e0b0;
-}
-.configLineMatching-true-odd {
-    background-color: #b7e3b7;
-}
-
-.configLineMatching-false-even {
-    background-color: #d0e0b0;
-}
-.configLineMatching-false-odd {
-    background-color: #d4e3b7;
-}
-
-.value-false-even {
-    background-color: #f0c0a0;
-}
-.value-false-odd {
-    background-color: #f1c6a9;
-}*/

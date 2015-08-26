@@ -255,4 +255,19 @@ myApp.controller('ConfigAuditController', ['$log', 'DataService', function($log,
       }
     }
 
+    this.valueColor = function(keyValue) {
+      if (keyValue.existsInEnvironment.length == 0) {
+        return "matching";
+      } else {
+        for (i = 0; i < keyValue.valueInEnvironment.length; i++ ) {
+          if (!keyValue.existsInEnvironment[i]) {
+            return "absence"
+          } else if (keyValue.valueInEnvironment[i] != keyValue.valueInEnvironment[0]) {
+            return "difference";
+          }
+        }
+      }
+      return "matching";
+    }
+
   }]);
