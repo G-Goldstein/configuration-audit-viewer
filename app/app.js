@@ -32,15 +32,15 @@ myApp.controller('ConfigAuditController', ['$log', 'DataService', function($log,
       });
     };
 
-    this.getConfigFilesFromJson(this.fileLocation0, 1);
-    this.getConfigFilesFromJson(this.fileLocation1, 0);
+    this.getConfigFilesFromJson(this.fileLocation0, 0);
+    this.getConfigFilesFromJson(this.fileLocation1, 1);
 
     this.getComparisonObject = function() {
       this.environments = this.environmentConfigs.filter(this.isNotEmpty);
       allFiles = function(environments) {
         var allFilesBuilder = [];
-        for (i = 0; i < environments.length; i++ ) {
-          for (j = 0; j < environments[i].length; j ++) {
+        for (var i = 0; i < environments.length; i++ ) {
+          for (var j = 0; j < environments[i].length; j ++) {
             var file = {relativePath: environments[i][j].relativePath, fileName: environments[i][j].fileName}
             if (!listContainsFile(allFilesBuilder, file)) {
               allFilesBuilder.push(file);
@@ -51,7 +51,7 @@ myApp.controller('ConfigAuditController', ['$log', 'DataService', function($log,
       }
 
       function listContainsFile(fileList, file) {
-        for (f = 0; f < fileList.length; f ++) {
+        for (var f = 0; f < fileList.length; f ++) {
           if (fileList[f].fileName == file.fileName && fileList[f].relativePath == file.relativePath) {
             return true;
           } 
@@ -60,7 +60,7 @@ myApp.controller('ConfigAuditController', ['$log', 'DataService', function($log,
       }
 
       function indexOfFileInEnv(environmentFiles, file) {
-        for (f = 0; f < environmentFiles.length; f ++) {
+        for (var f = 0; f < environmentFiles.length; f ++) {
           if (environmentFiles[f].fileName == file.fileName && environmentFiles[f].relativePath == file.relativePath) {
             return f;
           }
@@ -69,7 +69,7 @@ myApp.controller('ConfigAuditController', ['$log', 'DataService', function($log,
       }
 
       function indexOfOverrideLevelInFile(file, overrideLevel) {
-        for (o = 0; o < file.overrideLevels.length; o ++) {
+        for (var o = 0; o < file.overrideLevels.length; o ++) {
           if (file.overrideLevels[o].levelDescription == overrideLevel.levelDescription) {
             return o;
           }
@@ -78,7 +78,7 @@ myApp.controller('ConfigAuditController', ['$log', 'DataService', function($log,
       }
 
       function fileContainsOverrideLevel(file, overrideLevel) {
-        for (o = 0; o < file.overrideLevels.length; o++ ) {
+        for (var o = 0; o < file.overrideLevels.length; o++ ) {
           if (file.overrideLevels[o].levelDescription == overrideLevel.levelDescription) {
             return true;
           }
@@ -87,7 +87,7 @@ myApp.controller('ConfigAuditController', ['$log', 'DataService', function($log,
       }
 
       function overrideLevelContainsKey(overrideLevel, key) {
-        for (k = 0; k < overrideLevel.keyValues.length; k++ ) {
+        for (var k = 0; k < overrideLevel.keyValues.length; k++ ) {
           if (overrideLevel.keyValues[k].key == key) {
             return true;
           }
@@ -96,7 +96,7 @@ myApp.controller('ConfigAuditController', ['$log', 'DataService', function($log,
       }
 
       function envOverrideLevelContainsKey(overrideLevel, key) {
-        for (k = 0; k < overrideLevel.keyValuePairs.length; k++ ) {
+        for (var k = 0; k < overrideLevel.keyValuePairs.length; k++ ) {
           if (overrideLevel.keyValuePairs[k].key == key) {
             return true;
           }
@@ -105,7 +105,7 @@ myApp.controller('ConfigAuditController', ['$log', 'DataService', function($log,
       }
 
       function valueOfKeyInEnvOverride(key, overrideLevel) {
-        for (k = 0; k < overrideLevel.keyValuePairs.length; k++ ) {
+        for (var k = 0; k < overrideLevel.keyValuePairs.length; k++ ) {
           if (overrideLevel.keyValuePairs[k].key == key) {
             return overrideLevel.keyValuePairs[k].value;
           }
@@ -116,23 +116,23 @@ myApp.controller('ConfigAuditController', ['$log', 'DataService', function($log,
       this.comparisonObjectBuilder = allFiles(this.environments);
 
       // find the override levels in each file.
-      for (i = 0; i < this.comparisonObjectBuilder.length; i++ ) {
+      for (var i = 0; i < this.comparisonObjectBuilder.length; i++ ) {
         this.comparisonObjectBuilder[i].existsInEnvironment = [];
         this.comparisonObjectBuilder[i].overrideLevels = [];
         this.comparisonObjectBuilder[i].highlight = false;
         this.comparisonObjectBuilder[i].show = false;
-        for (j = 0; j < this.environments.length; j++ ) {
+        for (var j = 0; j < this.environments.length; j++ ) {
           var indexOfFile = indexOfFileInEnv(this.environments[j], (this.comparisonObjectBuilder[i]))
           this.comparisonObjectBuilder[i].existsInEnvironment[j] = (indexOfFile != -1)
           if (this.comparisonObjectBuilder[i].existsInEnvironment[j]) {
-            for (ovrLvl = 0; ovrLvl < this.environments[j][indexOfFile].overrideLevels.length; ovrLvl++ ) {
+            for (var ovrLvl = 0; ovrLvl < this.environments[j][indexOfFile].overrideLevels.length; ovrLvl++ ) {
               if (!fileContainsOverrideLevel(this.comparisonObjectBuilder[i], (this.environments[j][indexOfFile].overrideLevels[ovrLvl]))) {
                 var overrideLevel = {show: false, highlight: false, levelDescription: this.environments[j][indexOfFile].overrideLevels[ovrLvl].levelDescription, existsInEnvironment: [], keyValues: []}
                 this.comparisonObjectBuilder[i].overrideLevels.push(overrideLevel);
               }
               var coOvrLvl = indexOfOverrideLevelInFile(this.comparisonObjectBuilder[i], this.environments[j][indexOfFile].overrideLevels[ovrLvl])
               var coOverrideLevel = this.comparisonObjectBuilder[i].overrideLevels[coOvrLvl]
-              for (k = 0; k < this.environments[j][indexOfFile].overrideLevels[ovrLvl].keyValuePairs.length; k++ ) {
+              for (var k = 0; k < this.environments[j][indexOfFile].overrideLevels[ovrLvl].keyValuePairs.length; k++ ) {
                 var key = {key: this.environments[j][indexOfFile].overrideLevels[ovrLvl].keyValuePairs[k].key, existsInEnvironment: [], valueInEnvironment: []}
                 if (!overrideLevelContainsKey(coOverrideLevel, key.key)) {
                   coOverrideLevel.keyValues.push(key);
@@ -144,18 +144,18 @@ myApp.controller('ConfigAuditController', ['$log', 'DataService', function($log,
       }
 
       // for each environment, check whether the override and key values exist, and record that along with what they are.
-      for (coF = 0; coF < this.comparisonObjectBuilder.length; coF++ ) {
+      for (var coF = 0; coF < this.comparisonObjectBuilder.length; coF++ ) {
         var coFile = this.comparisonObjectBuilder[coF];
-        for (envE = 0; envE < this.environments.length; envE++ ) {
+        for (var envE = 0; envE < this.environments.length; envE++ ) {
           var environment = this.environments[envE];
           if (coFile.existsInEnvironment[envE]) {
-            for (coO = 0; coO < coFile.overrideLevels.length; coO++ ) {
+            for (var coO = 0; coO < coFile.overrideLevels.length; coO++ ) {
               var envFile = environment[indexOfFileInEnv(environment, coFile)];
               var coOverrideLevel = coFile.overrideLevels[coO];
               coOverrideLevel.existsInEnvironment[envE] = fileContainsOverrideLevel(envFile, coOverrideLevel);
               if (coOverrideLevel.existsInEnvironment[envE]) {
                 var envOverrideLevel = envFile.overrideLevels[indexOfOverrideLevelInFile(envFile, coOverrideLevel)];
-                for (coK = 0; coK < coOverrideLevel.keyValues.length; coK++ ) {
+                for (var coK = 0; coK < coOverrideLevel.keyValues.length; coK++ ) {
                   var coKey = coOverrideLevel.keyValues[coK];
                   coKey.existsInEnvironment[envE] = envOverrideLevelContainsKey(envOverrideLevel, coKey.key);
                   if (coOverrideLevel.existsInEnvironment[envE]) {
@@ -169,13 +169,13 @@ myApp.controller('ConfigAuditController', ['$log', 'DataService', function($log,
       }
 
       // Where something doesn't exist in an environment, populate the value's existence with 'false'.
-      for (envE = 0; envE < this.environments.length; envE++ ) {
-        for (coF = 0; coF < this.comparisonObjectBuilder.length; coF++ ) {
+      for (var envE = 0; envE < this.environments.length; envE++ ) {
+        for (var coF = 0; coF < this.comparisonObjectBuilder.length; coF++ ) {
           var file = this.comparisonObjectBuilder[coF];
-          for (coO = 0; coO < file.overrideLevels.length; coO++ ) {
+          for (var coO = 0; coO < file.overrideLevels.length; coO++ ) {
             var overrideLevel = file.overrideLevels[coO];
             if (!overrideLevel.existsInEnvironment[envE]) {
-              for (coK = 0; coK < overrideLevel.keyValues.length; coK++ ) {
+              for (var coK = 0; coK < overrideLevel.keyValues.length; coK++ ) {
                 overrideLevel.keyValues[coK].existsInEnvironment[envE] = false;
                 overrideLevel.keyValues[coK].valueInEnvironment[envE] = "";
               }
@@ -196,7 +196,7 @@ myApp.controller('ConfigAuditController', ['$log', 'DataService', function($log,
       if (keyValues.existsInEnvironment.length == 0) {
         return true;
       } else {
-        for (i = 0; i < keyValues.valueInEnvironment.length; i++ ) {
+        for (var i = 0; i < keyValues.valueInEnvironment.length; i++ ) {
           if ((!keyValues.existsInEnvironment[i]) || keyValues.valueInEnvironment[i] != keyValues.valueInEnvironment[0]) {
             return false;
           }
@@ -218,12 +218,12 @@ myApp.controller('ConfigAuditController', ['$log', 'DataService', function($log,
     }
 
     this.overrideLevelColor = function(overrideLevel) {
-      for (env = 0; env < overrideLevel.existsInEnvironment.length; env++ ) {
+      for (var env = 0; env < overrideLevel.existsInEnvironment.length; env++ ) {
         if (overrideLevel.existsInEnvironment[env] != true) {
           return "absence";
         }
       }
-      for (k = 0; k < overrideLevel.keyValues.length; k++ ) {
+      for (var k = 0; k < overrideLevel.keyValues.length; k++ ) {
         var key = overrideLevel.keyValues[k];
         if (!this.matchingValuesForKey(key)) {
           return "difference";
@@ -233,12 +233,12 @@ myApp.controller('ConfigAuditController', ['$log', 'DataService', function($log,
     }
 
     this.configFileColor = function(configFile) {
-      for (env = 0; env < configFile.existsInEnvironment.length; env++ ) {
+      for (var env = 0; env < configFile.existsInEnvironment.length; env++ ) {
         if (configFile.existsInEnvironment[env] != true) {
           return "absence";
         }
       }
-      for (o = 0; o < configFile.overrideLevels.length; o++ ) {
+      for (var o = 0; o < configFile.overrideLevels.length; o++ ) {
         var overrideLevel = configFile.overrideLevels[o];
         if (this.overrideLevelColor(overrideLevel) != "match") {
           return "difference";
@@ -259,7 +259,7 @@ myApp.controller('ConfigAuditController', ['$log', 'DataService', function($log,
       if (keyValue.existsInEnvironment.length == 0) {
         return "matching";
       } else {
-        for (i = 0; i < keyValue.valueInEnvironment.length; i++ ) {
+        for (var i = 0; i < keyValue.valueInEnvironment.length; i++ ) {
           if (!keyValue.existsInEnvironment[i]) {
             return "absence"
           } else if (keyValue.valueInEnvironment[i] != keyValue.valueInEnvironment[0]) {
