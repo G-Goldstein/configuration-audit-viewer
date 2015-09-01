@@ -63,12 +63,14 @@ myApp.controller('ConfigAuditController', ['$scope', '$log', 'ServerDataService'
     ClientDataService.getData(fileList).then(function(response) {
       self.environments = response;
       self.getComparisonObject();
+      self.loading=false;
       $scope.$apply();
     }, function(errResponse) {
       $log.error(errResponse);
       self.errorMessage = errResponse;
       self.environments = [];
       self.getComparisonObject();
+      self.loading=false;
       $scope.$apply();
     });
   }
@@ -324,12 +326,13 @@ myApp.directive('fileModel', ['$parse', function ($parse) {
             var modelSetter = model.assign;
             
             element.bind('change', function(){
+              if (element[0].files.length > 0) {
                 scope.configViewer.loading=true;
-                scope.$apply();
                 scope.configViewer.comparisonObject = [];
+                scope.$apply();
                 modelSetter(scope, element[0].files);
-                scope.$apply(scope.configViewer.uploadFiles());
-                scope.configViewer.loading=false;
+                scope.configViewer.uploadFiles();
+              }
             });
         }
     };
