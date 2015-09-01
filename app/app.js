@@ -41,6 +41,7 @@ myApp.controller('ConfigAuditController', ['$scope', '$log', 'ServerDataService'
   this.comparisonObjectBuilder = [];
   this.comparisonObject = [];
   this.environments = [];
+  this.loading = false;
   self = this;
 
   this.getConfigFilesFromJson = function(jsonFile, index) {
@@ -164,7 +165,7 @@ myApp.controller('ConfigAuditController', ['$scope', '$log', 'ServerDataService'
         if (this.comparisonObjectBuilder[i].existsInEnvironment[j]) {
           for (var ovrLvl = 0; ovrLvl < this.environments[j][indexOfFile].overrideLevels.length; ovrLvl++ ) {
             if (!fileContainsOverrideLevel(this.comparisonObjectBuilder[i], (this.environments[j][indexOfFile].overrideLevels[ovrLvl]))) {
-              var overrideLevel = {show: false, highlight: false, levelDescription: this.environments[j][indexOfFile].overrideLevels[ovrLvl].levelDescription, existsInEnvironment: [], keyValues: []}
+              var overrideLevel = {show: true, highlight: false, levelDescription: this.environments[j][indexOfFile].overrideLevels[ovrLvl].levelDescription, existsInEnvironment: [], keyValues: []}
               this.comparisonObjectBuilder[i].overrideLevels.push(overrideLevel);
             }
             var coOvrLvl = indexOfOverrideLevelInFile(this.comparisonObjectBuilder[i], this.environments[j][indexOfFile].overrideLevels[ovrLvl])
@@ -228,6 +229,7 @@ myApp.controller('ConfigAuditController', ['$scope', '$log', 'ServerDataService'
     
 
     this.comparisonObject = this.comparisonObjectBuilder;
+
   };
 
   this.isNotEmpty = function(arrayElement) {
@@ -322,9 +324,12 @@ myApp.directive('fileModel', ['$parse', function ($parse) {
             var modelSetter = model.assign;
             
             element.bind('change', function(){
-                scope.$apply(function(){
-                    modelSetter(scope, element[0].files);
-                });
+                scope.configViewer.loading=true;
+                scope.$apply();
+                scope.configViewer.comparisonObject = [];
+                modelSetter(scope, element[0].files);
+                scope.$apply(scope.configViewer.uploadFiles());
+                scope.configViewer.loading=false;
             });
         }
     };

@@ -156,9 +156,6 @@ td {
       #f0f0f0 11px,
       transparent 10px);
 }
-.columns1 {width: 78%;}
-.columns2 {width: 39%;}
-.columns3 {width: 26%;}
 
 .tableContainer {
     overflow-y: hidden;
