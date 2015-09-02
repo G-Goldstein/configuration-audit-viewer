@@ -230,7 +230,7 @@ myApp.controller('ConfigAuditController', ['$scope', '$log', 'ServerDataService'
     }
     
 
-    this.comparisonObject = this.comparisonObjectBuilder;
+    this.comparisonObject.configFiles = this.comparisonObjectBuilder;
 
   };
 

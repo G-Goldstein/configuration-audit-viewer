@@ -20,7 +20,7 @@
     <input type="file" multiple file-model="files" accept=".json" /><span ng-hide="!configViewer.loading">Loading...</span>
     <span>{{configViewer.errorMessage}}</span>
     <ul>
-      <li ng-repeat="configFile in configViewer.comparisonObject | orderBy:['relativePath', 'fileName']">
+      <li ng-repeat="configFile in configViewer.comparisonObject.configFiles | orderBy:['relativePath', 'fileName']">
       <div class="configFile configFile-{{configFile.highlight}} config-{{configViewer.configFileColor(configFile)}}-{{configViewer.openOrClosed(configFile)}}">
         <div class="configFileHeader noSelect" ng-mouseover="configFile.highlight=true" ng-mouseleave="configFile.highlight=false" ng-click="configFile.show = !configFile.show">{{configFile.relativePath}}{{configFile.fileName}}</div>
         <ul ng-show="configFile.show">
