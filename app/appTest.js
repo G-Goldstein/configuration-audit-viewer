@@ -49,5 +49,6 @@ describe('The config audit controller with an error', function() {
     expect(ctrl.errorMessages[0].data).toBe("Configuration audit data not found"); 
   });
   
+  // Test comment for branch.
 
 });
