@@ -17,7 +17,7 @@
     <h1>Configuration audit</h1>
   </header>
   <article ng-controller="ConfigAuditController as configViewer">
-    <input type="file" multiple file-model="files" /><span ng-hide="!configViewer.loading">Loading...</span>
+    <input type="file" multiple file-model="files" accept=".json" /><span ng-hide="!configViewer.loading">Loading...</span>
     <span>{{configViewer.errorMessage}}</span>
     <ul>
       <li ng-repeat="configFile in configViewer.comparisonObject | orderBy:['relativePath', 'fileName']">
