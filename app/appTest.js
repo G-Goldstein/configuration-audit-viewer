@@ -86,15 +86,88 @@ describe('ComparisonService', function() {
     env2 = {configFiles: [file3, file5, file6]};
   });
 
-  it('should find a unique list of files in two environments', function() {
-    expect(1).toBe(1);
-    var uniqueFiles = ComparisonService.uniqueFiles([env1, env2]);
-    expect(uniqueFiles.length).toBe(5);
-    expect(uniqueFiles).toContain(file1);
-    expect(uniqueFiles).toContain(file2);
-    expect(uniqueFiles).toContain(file3);
-    expect(uniqueFiles).toContain(file5);
-    expect(uniqueFiles).toContain(file6);
+  describe('filesMatch', function() {
+    it('should be true when the fileName and relativePath are the same', function() {
+      var file4withextrastuff = {fileName: "Everyth6.ini", relativePath: "/Central/", extraStuff: "Yes"}
+      expect(ComparisonService.filesMatch(file1, file2)).toBe(false);
+      expect(ComparisonService.filesMatch(file3, file3)).toBe(true);
+      expect(ComparisonService.filesMatch(file4, file4withextrastuff)).toBe(true);
+    })
+  })
+
+  describe('listContainsFile', function () {
+    it('should know whether a file is in a list', function() {
+      var fileList = [file1, file3];
+      var file3withextrastuff = {fileName: "Erik.ini", relativePath: "/Central/", extraStuff: "Yes"};
+      expect(ComparisonService.listContainsFile(fileList, file1)).toBe(true);
+      expect(ComparisonService.listContainsFile(fileList, file2)).toBe(false);
+      expect(ComparisonService.listContainsFile(fileList, file3withextrastuff)).toBe(true);
+    });
   });
+
+  describe('addFileToEnvironment', function() {
+    it('should add a file to an empty list', function() {
+      var fileList = [];
+      ComparisonService.addFileToEnvironment(file1, fileList, 0)
+      expect(listContainsFile(fileList, file1)).toBe(true)
+    });
+  });
+
+  describe('uniqueFiles', function() {
+    it('should find a unique list of files in two environments', function() {
+      var uniqueFiles = ComparisonService.uniqueFiles([env1, env2]);
+      expect(uniqueFiles.length).toBe(5);
+      expect(ComparisonService.listContainsFile(uniqueFiles, file1)).toBe(true);
+      expect(ComparisonService.listContainsFile(uniqueFiles, file2)).toBe(true);
+      expect(ComparisonService.listContainsFile(uniqueFiles, file3)).toBe(true);
+      expect(ComparisonService.listContainsFile(uniqueFiles, file5)).toBe(true);
+      expect(ComparisonService.listContainsFile(uniqueFiles, file6)).toBe(true);
+    });
+
+    describe('existsInEnvironment', function() {
+      var found;
+      var uniqueFiles;
+
+      beforeEach(function() {
+        found = false;
+        uniqueFiles = ComparisonService.uniqueFiles([env1, env2]);
+      });
+
+      it('should correctly identify environment existence for file 1', function() {
+        for (var f = 0; f < uniqueFiles.length; f++ ) {
+          if (ComparisonService.filesMatch(uniqueFiles[f], file1)) {
+            expect(uniqueFiles[f].existsInEnvironment[0]).toBe(true);
+            expect(uniqueFiles[f].existsInEnvironment[1]).toBe(false);
+            expect(found).toBe(false);
+            found = true;
+          };
+        };
+        expect(found).toBe(true);
+      });
+
+      it('should correctly identify environment existence for file 3', function() {
+        for (var f = 0; f < uniqueFiles.length; f++ ) {
+          if (ComparisonService.filesMatch(uniqueFiles[f], file3)) {
+            expect(found).toBe(false);
+            found = true;
+          };
+        };
+        expect(found).toBe(true);
+      });
+
+      it('should correctly identify environment existence for file 6', function() {
+        for (var f = 0; f < uniqueFiles.length; f++ ) {
+          if (ComparisonService.filesMatch(uniqueFiles[f], file6)) {
+            expect(found).toBe(false);
+            found = true;
+          };
+        };
+        expect(found).toBe(true);
+      });
+
+    });
+
+  });
+
 
 });

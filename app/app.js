@@ -38,20 +38,24 @@ myApp.service('ComparisonService', function() {
 
   this.uniqueFiles = function(environments) {
     var fileListBuilder = [];
-    for (var env = 0; env < environments.length; env++ ) {
+    for (var env = 0; env < environments.length; env ++ ) {
       for (var fil = 0; fil < environments[env].configFiles.length; fil ++) {
-        var file = {relativePath: environments[env].configFiles[fil].relativePath, fileName: environments[env].configFiles[fil].fileName}
-        if (!listContainsFile(fileListBuilder, file)) {
+        var file = {relativePath: environments[env].configFiles[fil].relativePath, fileName: environments[env].configFiles[fil].fileName, existsInEnvironment: [true, false]}
+        if (!this.listContainsFile(fileListBuilder, file)) {
           fileListBuilder.push(file);
         }
       }
     }
     return fileListBuilder;
-  }
+  };
 
-  function listContainsFile(fileList, file) {
+  this.filesMatch = function(fileA, fileB) {
+    return (fileA.fileName === fileB.fileName && fileA.relativePath === fileB.relativePath)
+  };
+
+  this.listContainsFile = function(fileList, file) {
     for (var f = 0; f < fileList.length; f ++) {
-      if (fileList[f].fileName == file.fileName && fileList[f].relativePath == file.relativePath) {
+      if (this.filesMatch(fileList[f], file)) {
         return true;
       } 
     }
@@ -68,20 +72,7 @@ myApp.controller('ConfigAuditController', ['$scope', '$log', 'ServerDataService'
   this.comparisonObject = [];
   this.environments = [];
   this.loading = false;
-  self = this;
-
-  this.uniqueFiles = function(environments) {
-    for (var env = 0; env < environments.length; env++ ) {
-      for (var fil = 0; fil < environments[env].configFiles.length; fil ++) {
-        var file = {relativePath: environments[env].configFiles[fil].relativePath, fileName: environments[env].configFiles[fil].fileName}
-        if (!listContainsFile(allFilesBuilder, file)) {
-          allFilesBuilder.push(file);
-        }
-      }
-    }
-  }
-
-  
+  self = this;  
 
   this.getConfigFilesFromJson = function(jsonFile, index) {
     self.files[index] = [];
