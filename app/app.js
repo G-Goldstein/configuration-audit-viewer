@@ -33,6 +33,21 @@ myApp.service('ClientDataService', ['$q', function($q) {
   }
 
 }]);
+
+myApp.service('ComparisonService', function() {
+
+  this.uniqueFiles = function(environments) {
+    for (var env = 0; env < environments.length; env++ ) {
+      for (var fil = 0; fil < environments[env].configFiles.length; fil ++) {
+        var file = {relativePath: environments[env].configFiles[fil].relativePath, fileName: environments[env].configFiles[fil].fileName}
+        if (!listContainsFile(allFilesBuilder, file)) {
+          allFilesBuilder.push(file);
+        }
+      }
+    }
+  }
+  
+});
   
 myApp.controller('ConfigAuditController', ['$scope', '$log', 'ServerDataService', 'ClientDataService', function($scope, $log, ServerDataService, ClientDataService) {
 
@@ -43,6 +58,26 @@ myApp.controller('ConfigAuditController', ['$scope', '$log', 'ServerDataService'
   this.environments = [];
   this.loading = false;
   self = this;
+
+  this.uniqueFiles = function(environments) {
+    for (var env = 0; env < environments.length; env++ ) {
+      for (var fil = 0; fil < environments[env].configFiles.length; fil ++) {
+        var file = {relativePath: environments[env].configFiles[fil].relativePath, fileName: environments[env].configFiles[fil].fileName}
+        if (!listContainsFile(allFilesBuilder, file)) {
+          allFilesBuilder.push(file);
+        }
+      }
+    }
+  }
+
+  function listContainsFile(fileList, file) {
+    for (var f = 0; f < fileList.length; f ++) {
+      if (fileList[f].fileName == file.fileName && fileList[f].relativePath == file.relativePath) {
+        return true;
+      } 
+    }
+    return false;
+  }
 
   this.getConfigFilesFromJson = function(jsonFile, index) {
     self.files[index] = [];
@@ -90,14 +125,7 @@ myApp.controller('ConfigAuditController', ['$scope', '$log', 'ServerDataService'
       return allFilesBuilder;
     }
 
-    function listContainsFile(fileList, file) {
-      for (var f = 0; f < fileList.length; f ++) {
-        if (fileList[f].fileName == file.fileName && fileList[f].relativePath == file.relativePath) {
-          return true;
-        } 
-      }
-      return false;
-    }
+    
 
     function indexOfFileInEnv(environmentFiles, file) {
       for (var f = 0; f < environmentFiles.length; f ++) {
