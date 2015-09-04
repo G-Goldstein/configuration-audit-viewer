@@ -1,5 +1,5 @@
 
-var myApp = angular.module('configAuditViewer', ['ngAnimate']);
+var myApp = angular.module('configAuditViewer', []);
   
 myApp.service('ServerDataService', ['$http', function($http) {
   this.getData = function(jsonFile) {
@@ -37,14 +37,25 @@ myApp.service('ClientDataService', ['$q', function($q) {
 myApp.service('ComparisonService', function() {
 
   this.uniqueFiles = function(environments) {
+    var fileListBuilder = [];
     for (var env = 0; env < environments.length; env++ ) {
       for (var fil = 0; fil < environments[env].configFiles.length; fil ++) {
         var file = {relativePath: environments[env].configFiles[fil].relativePath, fileName: environments[env].configFiles[fil].fileName}
-        if (!listContainsFile(allFilesBuilder, file)) {
-          allFilesBuilder.push(file);
+        if (!listContainsFile(fileListBuilder, file)) {
+          fileListBuilder.push(file);
         }
       }
     }
+    return fileListBuilder;
+  }
+
+  function listContainsFile(fileList, file) {
+    for (var f = 0; f < fileList.length; f ++) {
+      if (fileList[f].fileName == file.fileName && fileList[f].relativePath == file.relativePath) {
+        return true;
+      } 
+    }
+    return false;
   }
   
 });
@@ -70,14 +81,7 @@ myApp.controller('ConfigAuditController', ['$scope', '$log', 'ServerDataService'
     }
   }
 
-  function listContainsFile(fileList, file) {
-    for (var f = 0; f < fileList.length; f ++) {
-      if (fileList[f].fileName == file.fileName && fileList[f].relativePath == file.relativePath) {
-        return true;
-      } 
-    }
-    return false;
-  }
+  
 
   this.getConfigFilesFromJson = function(jsonFile, index) {
     self.files[index] = [];

@@ -88,12 +88,13 @@ describe('ComparisonService', function() {
 
   it('should find a unique list of files in two environments', function() {
     expect(1).toBe(1);
-    // expect(ComparisonService.uniqueFiles([env1, env2]).length()).toBe(5);
-    // expect(ComparisonService.uniqueFiles([env1, env2])).toContain(file1);
-    // expect(ComparisonService.uniqueFiles([env1, env2])).toContain(file2);
-    // expect(ComparisonService.uniqueFiles([env1, env2])).toContain(file3);
-    // expect(ComparisonService.uniqueFiles([env1, env2])).toContain(file5);
-    // expect(ComparisonService.uniqueFiles([env1, env2])).toContain(file6);
+    var uniqueFiles = ComparisonService.uniqueFiles([env1, env2]);
+    expect(uniqueFiles.length).toBe(5);
+    expect(uniqueFiles).toContain(file1);
+    expect(uniqueFiles).toContain(file2);
+    expect(uniqueFiles).toContain(file3);
+    expect(uniqueFiles).toContain(file5);
+    expect(uniqueFiles).toContain(file6);
   });
 
 });
