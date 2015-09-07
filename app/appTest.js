@@ -106,12 +106,71 @@ describe('ComparisonService', function() {
   });
 
   describe('addFileToEnvironment', function() {
-    it('should add a file to an empty list', function() {
-      var fileList = [];
-      ComparisonService.addFileToEnvironment(file1, fileList, 0)
-      expect(listContainsFile(fileList, file1)).toBe(true)
+
+    var comparisonObject;
+
+    beforeEach(function() {
+      comparisonObject = {fileList: []};
     });
+
+    it('should add a file to an empty environment', function() {
+      ComparisonService.addFileToEnvironment(file1, comparisonObject, 0);
+      expect(ComparisonService.listContainsFile(comparisonObject.fileList, file1)).toBe(true);
+    });
+
+    it('should not add a file to the comparisonObject twice', function() {
+      ComparisonService.addFileToEnvironment(file1, comparisonObject, 0);
+      ComparisonService.addFileToEnvironment(file1, comparisonObject, 1);
+      expect(comparisonObject.fileList.length).toBe(1);
+    });
+
+    it('should identify that an environment contains a file', function() {
+      ComparisonService.addFileToEnvironment(file1, comparisonObject, 0);
+      expect(comparisonObject.fileList[0].existsInEnvironment[0]).toBe(true);
+    });
+
+    it('should identify which environments contain a file', function() {
+      ComparisonService.addFileToEnvironment(file1, comparisonObject, 0);
+      ComparisonService.addFileToEnvironment(file1, comparisonObject, 1);
+      expect(comparisonObject.fileList[0].existsInEnvironment[0]).toBe(true);
+      expect(comparisonObject.fileList[0].existsInEnvironment[1]).toBe(true);
+    });
+
+    it('should not assume an environment contains a file that wasn\'t added', function() {
+      ComparisonService.addFileToEnvironment(file1, comparisonObject, 0);
+      ComparisonService.addFileToEnvironment(file2, comparisonObject, 1);
+      expect(comparisonObject.fileList[0].existsInEnvironment[1]).not.toBe(true);
+      expect(comparisonObject.fileList[1].existsInEnvironment[0]).not.toBe(true);
+    });
+
   });
+
+  describe('findFileIndexInList', function() {
+    var fileList = [];
+
+    beforeEach(function() {
+      fileList = [];
+    });
+
+    it('should find a file when it has been added', function() {
+      fileList.push(file1);
+      expect(ComparisonService.findFileIndexInList(file1, fileList)).toBe(0);
+    })
+
+    it('should find files at higher index positions', function() {
+      fileList.push(file1);
+      fileList.push(file3);
+      expect(ComparisonService.findFileIndexInList(file1, fileList)).toBe(0);
+      expect(ComparisonService.findFileIndexInList(file3, fileList)).toBe(1);
+    })
+
+    it('should return -1 if the file isn\'t found', function() {
+      expect(ComparisonService.findFileIndexInList(file2, fileList)).toBe(-1);
+      fileList.push(file5);
+      expect(ComparisonService.findFileIndexInList(file6, fileList)).toBe(-1);
+    })
+
+  })
 
   describe('uniqueFiles', function() {
     it('should find a unique list of files in two environments', function() {

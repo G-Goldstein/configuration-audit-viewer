@@ -38,7 +38,7 @@ myApp.service('ComparisonService', function() {
 
   this.uniqueFiles = function(environments) {
     var fileListBuilder = [];
-    for (var env = 0; env < environments.length; env ++ ) {
+    for (var env = 0; env < environments.length; env++ ) {
       for (var fil = 0; fil < environments[env].configFiles.length; fil ++) {
         var file = {relativePath: environments[env].configFiles[fil].relativePath, fileName: environments[env].configFiles[fil].fileName, existsInEnvironment: [true, false]}
         if (!this.listContainsFile(fileListBuilder, file)) {
@@ -54,12 +54,32 @@ myApp.service('ComparisonService', function() {
   };
 
   this.listContainsFile = function(fileList, file) {
-    for (var f = 0; f < fileList.length; f ++) {
+    for (var f = 0; f < fileList.length; f++ ) {
       if (this.filesMatch(fileList[f], file)) {
         return true;
       } 
     }
     return false;
+  }
+
+  this.findFileIndexInList = function(file, fileList) {
+    for (var f = 0; f < fileList.length; f++ ) {
+      if (this.filesMatch(fileList[f], file)) {
+        return f;
+      } 
+    }
+    return -1;
+  }
+
+  this.addFileToEnvironment = function(file, comparisonObject, environment) {
+    if (!this.listContainsFile(comparisonObject.fileList, file)) {
+      file.existsInEnvironment = [];
+      file.existsInEnvironment[environment] = true;
+      comparisonObject.fileList.push(file);
+    } else {
+      var indexOfFile = this.findFileIndexInList(file, comparisonObject.fileList)
+      comparisonObject.fileList[indexOfFile].existsInEnvironment[environment] = true;
+    }
   }
   
 });
