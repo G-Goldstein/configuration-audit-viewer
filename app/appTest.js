@@ -74,14 +74,14 @@ describe('ComparisonService', function() {
   }));
 
   beforeEach(function() {
-    file1 = {fileName: "AppLauncher.ini", relativePath: "/Central/"};
-    file2 = {fileName: "CCM.ini", relativePath: "/Central/"};
-    file3 = {fileName: "Erik.ini", relativePath: "/Central/"};
-    file4 = {fileName: "Everyth6.ini", relativePath: "/Central/"};
-    file5 = {fileName: "AppLauncher.ini", relativePath: "/Clients/"};
-    file6 = {fileName: "CCM.ini", relativePath: "/Clients/"};
-    file7 = {fileName: "Erik.ini", relativePath: "/Clients/"};
-    file8 = {fileName: "Everyth6.ini", relativePath: "/Clients/"};
+    file1 = {fileName: "AppLauncher.ini", relativePath: "/Central/", overrideLevels: []};
+    file2 = {fileName: "CCM.ini", relativePath: "/Central/", overrideLevels: []};
+    file3 = {fileName: "Erik.ini", relativePath: "/Central/", overrideLevels: []};
+    file4 = {fileName: "Everyth6.ini", relativePath: "/Central/", overrideLevels: []};
+    file5 = {fileName: "AppLauncher.ini", relativePath: "/Clients/", overrideLevels: []};
+    file6 = {fileName: "CCM.ini", relativePath: "/Clients/", overrideLevels: []};
+    file7 = {fileName: "Erik.ini", relativePath: "/Clients/", overrideLevels: []};
+    file8 = {fileName: "Everyth6.ini", relativePath: "/Clients/", overrideLevels: []};
     env1 = {configFiles: [file1, file2, file3, file5]};
     env2 = {configFiles: [file3, file5, file6]};
   });
@@ -163,6 +163,33 @@ describe('ComparisonService', function() {
     });
   });
 
+  describe('addKeyValuePairsToEnvironment', function() {
+    var overrideLevel;
+    var keyValue1;
+    var keyValue2;
+    var keyValue3;
+    var keyValues = [];
+
+    beforeEach(function() {
+      overrideLevel = {keyValuePairs: []};
+      keyValue1 = {key: 'Colour', value: 'Red'};
+      keyValue2 = {key: 'Shape', value: 'Square'};
+      keyValue3 = {key: 'Size', value: 'Big'};
+      keyValues = [keyValue1, keyValue2, keyValue3];
+    });
+
+    it('should add a bunch of keyValuePairs to an environment', function() {
+      ComparisonService.addKeyValuePairsToEnvironment(keyValues, overrideLevel, 0);
+      expect(overrideLevel.keyValuePairs.length).toBe(3);
+    });
+    it('should recognise repeated keys', function() {
+      ComparisonService.addKeyValuePairsToEnvironment(keyValues, overrideLevel, 0);
+      ComparisonService.addKeyValuePairsToEnvironment(keyValues, overrideLevel, 1);
+      expect(overrideLevel.keyValuePairs.length).toBe(3);
+    });
+
+  })
+
   describe('addOverrideLevelToEnvironment', function() {
     var file;
     var overrideLevel1;
@@ -171,9 +198,9 @@ describe('ComparisonService', function() {
 
     beforeEach(function() {
       file = {overrideLevels: []};
-      overrideLevel1 = {levelDescription: '[Default]'};
-      overrideLevel2 = {levelDescription: '[ABC]'};
-      overrideLevel3 = {levelDescription: '[Default]'};
+      overrideLevel1 = {levelDescription: '[Default]', keyValuePairs: [{key: 'Colour', value: 'Red'}]};
+      overrideLevel2 = {levelDescription: '[ABC]', keyValuePairs: [{key: 'Colour', value: 'Green'}, {key: 'Shape', value: 'Square'}]};
+      overrideLevel3 = {levelDescription: '[Default]', keyValuePairs: [{key: 'Colour', value: 'Blue'}]};
     });
 
     it('should set existsInEnvironment', function() {
@@ -181,8 +208,38 @@ describe('ComparisonService', function() {
       expect(file.overrideLevels[0].existsInEnvironment[0]).not.toBe(true)
       expect(file.overrideLevels[0].existsInEnvironment[1]).not.toBe(true)
       expect(file.overrideLevels[0].existsInEnvironment[2]).toBe(true)
-    })
-
+      expect(file.overrideLevels[0].levelDescription).toBe('[Default]')
+    });
+    it('should treat matching descriptions as the same override level', function() {
+      ComparisonService.addOverrideLevelToEnvironment(overrideLevel1, file, 0);
+      ComparisonService.addOverrideLevelToEnvironment(overrideLevel3, file, 1);
+      expect(file.overrideLevels.length).toBe(1);
+      expect(file.overrideLevels[0].existsInEnvironment[0]).toBe(true);
+      expect(file.overrideLevels[0].existsInEnvironment[1]).toBe(true);
+    });
+    it('should set the key values correctly', function() {
+      ComparisonService.addOverrideLevelToEnvironment(overrideLevel1, file, 0);
+      ComparisonService.addOverrideLevelToEnvironment(overrideLevel3, file, 1);
+      expect(file.overrideLevels[0].keyValuePairs.length).toBe(1);
+      expect(file.overrideLevels[0].keyValuePairs[0].key).toBe('Colour');
+      expect(file.overrideLevels[0].keyValuePairs[0].value).toBe(undefined);
+      expect(file.overrideLevels[0].keyValuePairs[0].existsInEnvironment[0]).toBe(true);
+      expect(file.overrideLevels[0].keyValuePairs[0].valueInEnvironment[0]).toBe('Red');
+      expect(file.overrideLevels[0].keyValuePairs[0].existsInEnvironment[1]).toBe(true);
+      expect(file.overrideLevels[0].keyValuePairs[0].valueInEnvironment[1]).toBe('Blue');
+    });
+    it('should work with multiple override levels', function() {
+      ComparisonService.addOverrideLevelToEnvironment(overrideLevel1, file, 0);
+      ComparisonService.addOverrideLevelToEnvironment(overrideLevel2, file, 1);
+      ComparisonService.addOverrideLevelToEnvironment(overrideLevel3, file, 1);
+      expect(file.overrideLevels[0].keyValuePairs.length).toBe(1);
+      expect(file.overrideLevels[0].keyValuePairs[0].key).toBe('Colour');
+      expect(file.overrideLevels[1].keyValuePairs[1].key).toBe('Shape');
+      expect(file.overrideLevels[1].keyValuePairs[0].key).toBe('Colour');
+      expect(file.overrideLevels[1].keyValuePairs[1].existsInEnvironment[0]).not.toBe(true);
+      expect(file.overrideLevels[1].keyValuePairs[1].existsInEnvironment[1]).toBe(true);
+      expect(file.overrideLevels[1].keyValuePairs[1].valueInEnvironment[1]).toBe('Square');
+    });
   });
 
   describe('getIndexOfItemInList', function() {
@@ -227,6 +284,32 @@ describe('ComparisonService', function() {
   describe('addFileToEnvironment', function() {
 
     var comparisonObject;
+    var fileA = {
+                  fileName: 'fileA',
+                  relativePath: '/',
+                  overrideLevels: [
+                    {
+                      levelDescription: '[Default]',
+                      keyValuePairs: []
+                    }
+                  ]
+                };
+    var fileB = {
+                  fileName: 'fileB',
+                  relativePath: '/',
+                  overrideLevels: [
+                    {
+                      levelDescription: '[Default]',
+                      keyValuePairs: []
+                    },
+                    {
+                      levelDescription: '[ABC]',
+                      keyValuePairs: []
+                    }
+                  ]
+                };                
+
+
 
     beforeEach(function() {
       comparisonObject = {configFiles: []};
@@ -260,6 +343,13 @@ describe('ComparisonService', function() {
       ComparisonService.addFileToEnvironment(file2, comparisonObject, 1);
       expect(comparisonObject.configFiles[0].existsInEnvironment[1]).not.toBe(true);
       expect(comparisonObject.configFiles[1].existsInEnvironment[0]).not.toBe(true);
+    });
+
+    it('should add the override levels within the file', function() {
+      ComparisonService.addFileToEnvironment(fileA, comparisonObject, 0);
+      ComparisonService.addFileToEnvironment(fileA, comparisonObject, 1);
+      expect(comparisonObject.configFiles[0].overrideLevels[0].existsInEnvironment[0]).toBe(true);
+      expect(comparisonObject.configFiles[0].overrideLevels[0].existsInEnvironment[1]).toBe(true);
     });
 
   });
