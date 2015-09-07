@@ -93,54 +93,173 @@ describe('ComparisonService', function() {
       expect(ComparisonService.filesMatch(file3, file3)).toBe(true);
       expect(ComparisonService.filesMatch(file4, file4withextrastuff)).toBe(true);
     })
+  });
+  describe('overrideLevelsMatch', function() {
+    it('should be true when the levelDescriptions are the same', function() {
+      var overrideLevel1 = {levelDescription: 'Level desc 1'};
+      var overrideLevel2 = {levelDescription: 'Level desc 1'};
+      var overrideLevel3 = {levelDescription: 'Level desc 2'};
+      expect(ComparisonService.overrideLevelsMatch(overrideLevel1, overrideLevel2)).toBe(true);
+      expect(ComparisonService.overrideLevelsMatch(overrideLevel1, overrideLevel3)).toBe(false);
+    })
+  })
+  describe('keysMatch', function() {
+    it('should be true when the keys are the same', function() {
+      var keyValue1 = {key: 'Colour', value: 'Red'};
+      var keyValue2 = {key: 'Colour', value: 'Blue'};
+      var keyValue3 = {key: 'Shape', value: 'Square'};
+      expect(ComparisonService.keysMatch(keyValue1, keyValue2)).toBe(true);
+      expect(ComparisonService.keysMatch(keyValue1, keyValue3)).toBe(false);
+    })
   })
 
   describe('listContainsFile', function () {
     it('should know whether a file is in a list', function() {
-      var fileList = [file1, file3];
+      var configFiles = [file1, file3];
       var file3withextrastuff = {fileName: "Erik.ini", relativePath: "/Central/", extraStuff: "Yes"};
-      expect(ComparisonService.listContainsFile(fileList, file1)).toBe(true);
-      expect(ComparisonService.listContainsFile(fileList, file2)).toBe(false);
-      expect(ComparisonService.listContainsFile(fileList, file3withextrastuff)).toBe(true);
+      expect(ComparisonService.listContainsFile(configFiles, file1)).toBe(true);
+      expect(ComparisonService.listContainsFile(configFiles, file2)).toBe(false);
+      expect(ComparisonService.listContainsFile(configFiles, file3withextrastuff)).toBe(true);
     });
   });
+
+  describe('addKeyValuePairToEnvironment', function() {
+    var overrideLevel;
+    var keyValue1 = {key: 'Colour', value: 'Red'};
+    var keyValue2 = {key: 'Shape', value: 'Square'};
+    var keyValue3 = {key: 'Colour', value: 'Blue'};
+
+    beforeEach(function() {
+      overrideLevel = {keyValuePairs: []};
+      keyValue1 = {key: 'Colour', value: 'Red'};
+      keyValue2 = {key: 'Shape', value: 'Square'};
+      keyValue3 = {key: 'Colour', value: 'Blue'};
+    });
+
+    it('should set the correct index of valueInEnvironment to the value', function() {
+      ComparisonService.addKeyValuePairToEnvironment(keyValue1, overrideLevel, 0);
+      expect(overrideLevel.keyValuePairs[0].key).toBe('Colour');
+    });
+    it('should not set value', function() {
+      ComparisonService.addKeyValuePairToEnvironment(keyValue1, overrideLevel, 0);
+      expect(overrideLevel.keyValuePairs[0].value).toBe(undefined);
+    });
+    it('should set existsInEnvironment', function() {
+      ComparisonService.addKeyValuePairToEnvironment(keyValue1, overrideLevel, 0);
+      expect(overrideLevel.keyValuePairs[0].existsInEnvironment[0]).toBe(true);
+    });
+    it('should set valueInEnvironment', function() {
+      ComparisonService.addKeyValuePairToEnvironment(keyValue1, overrideLevel, 0);
+      expect(overrideLevel.keyValuePairs[0].valueInEnvironment[0]).toBe('Red');
+    });
+    it('should be able to store two separate values for a key in different environments', function() {
+      ComparisonService.addKeyValuePairToEnvironment(keyValue1, overrideLevel, 0);
+      ComparisonService.addKeyValuePairToEnvironment(keyValue3, overrideLevel, 1);
+      expect(overrideLevel.keyValuePairs.length).toBe(1);
+      expect(overrideLevel.keyValuePairs[0].existsInEnvironment[0]).toBe(true);
+      expect(overrideLevel.keyValuePairs[0].existsInEnvironment[1]).toBe(true);
+      expect(overrideLevel.keyValuePairs[0].valueInEnvironment[0]).toBe('Red');
+      expect(overrideLevel.keyValuePairs[0].valueInEnvironment[1]).toBe('Blue');
+    });
+  });
+
+  describe('addOverrideLevelToEnvironment', function() {
+    var file;
+    var overrideLevel1;
+    var overrideLevel2;
+    var overrideLevel3;
+
+    beforeEach(function() {
+      file = {overrideLevels: []};
+      overrideLevel1 = {levelDescription: '[Default]'};
+      overrideLevel2 = {levelDescription: '[ABC]'};
+      overrideLevel3 = {levelDescription: '[Default]'};
+    });
+
+    it('should set existsInEnvironment', function() {
+      ComparisonService.addOverrideLevelToEnvironment(overrideLevel1, file, 2);
+      expect(file.overrideLevels[0].existsInEnvironment[0]).not.toBe(true)
+      expect(file.overrideLevels[0].existsInEnvironment[1]).not.toBe(true)
+      expect(file.overrideLevels[0].existsInEnvironment[2]).toBe(true)
+    })
+
+  });
+
+  describe('getIndexOfItemInList', function() {
+    var list = [];
+    var element1 = {colour: 'Red', shape: 'Square'};
+    var element2 = {colour: 'Blue', shape: 'Circle'};
+    var element3 = {colour: 'Red', shape: 'Circle'};
+
+    function coloursMatch(item1, item2) {
+      return (item1.colour === item2.colour);
+    }
+
+    beforeEach(function() {
+      list = [];
+      element1 = {colour: 'Red', shape: 'Square'};
+      element2 = {colour: 'Blue', shape: 'Circle'};
+      element3 = {colour: 'Red', shape: 'Circle'};
+    });
+
+    it('should find the only element at position 0', function() {
+      list.push(element1);
+      expect(ComparisonService.getIndexOfItemInList(element1, list, coloursMatch)).toBe(0);
+    })
+    it('should not find the item if the list is empty', function() {
+      expect(ComparisonService.getIndexOfItemInList(element1, list, coloursMatch)).toBe(-1);
+    })
+    it('should not find an item that doesn\'t match', function() {
+      list.push(element1);
+      expect(ComparisonService.getIndexOfItemInList(element2, list, coloursMatch)).toBe(-1);
+    })
+    it('should find any item that matches', function() {
+      list.push(element1);
+      expect(ComparisonService.getIndexOfItemInList(element3, list, coloursMatch)).toBe(0);
+    })
+    it('should find the element in a later position', function() {
+      list.push(element2);
+      list.push(element1);
+      expect(ComparisonService.getIndexOfItemInList(element1, list, coloursMatch)).toBe(1);
+    })
+  })
 
   describe('addFileToEnvironment', function() {
 
     var comparisonObject;
 
     beforeEach(function() {
-      comparisonObject = {fileList: []};
+      comparisonObject = {configFiles: []};
     });
 
     it('should add a file to an empty environment', function() {
       ComparisonService.addFileToEnvironment(file1, comparisonObject, 0);
-      expect(ComparisonService.listContainsFile(comparisonObject.fileList, file1)).toBe(true);
+      expect(ComparisonService.listContainsFile(comparisonObject.configFiles, file1)).toBe(true);
     });
 
     it('should not add a file to the comparisonObject twice', function() {
       ComparisonService.addFileToEnvironment(file1, comparisonObject, 0);
       ComparisonService.addFileToEnvironment(file1, comparisonObject, 1);
-      expect(comparisonObject.fileList.length).toBe(1);
+      expect(comparisonObject.configFiles.length).toBe(1);
     });
 
     it('should identify that an environment contains a file', function() {
       ComparisonService.addFileToEnvironment(file1, comparisonObject, 0);
-      expect(comparisonObject.fileList[0].existsInEnvironment[0]).toBe(true);
+      expect(comparisonObject.configFiles[0].existsInEnvironment[0]).toBe(true);
     });
 
     it('should identify which environments contain a file', function() {
       ComparisonService.addFileToEnvironment(file1, comparisonObject, 0);
       ComparisonService.addFileToEnvironment(file1, comparisonObject, 1);
-      expect(comparisonObject.fileList[0].existsInEnvironment[0]).toBe(true);
-      expect(comparisonObject.fileList[0].existsInEnvironment[1]).toBe(true);
+      expect(comparisonObject.configFiles[0].existsInEnvironment[0]).toBe(true);
+      expect(comparisonObject.configFiles[0].existsInEnvironment[1]).toBe(true);
     });
 
     it('should not assume an environment contains a file that wasn\'t added', function() {
       ComparisonService.addFileToEnvironment(file1, comparisonObject, 0);
       ComparisonService.addFileToEnvironment(file2, comparisonObject, 1);
-      expect(comparisonObject.fileList[0].existsInEnvironment[1]).not.toBe(true);
-      expect(comparisonObject.fileList[1].existsInEnvironment[0]).not.toBe(true);
+      expect(comparisonObject.configFiles[0].existsInEnvironment[1]).not.toBe(true);
+      expect(comparisonObject.configFiles[1].existsInEnvironment[0]).not.toBe(true);
     });
 
   });

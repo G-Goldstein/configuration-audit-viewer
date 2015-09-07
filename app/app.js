@@ -52,6 +52,12 @@ myApp.service('ComparisonService', function() {
   this.filesMatch = function(fileA, fileB) {
     return (fileA.fileName === fileB.fileName && fileA.relativePath === fileB.relativePath)
   };
+  this.overrideLevelsMatch = function(overrideLevelA, overrideLevelB) {
+    return (overrideLevelA.levelDescription === overrideLevelB.levelDescription);
+  }
+  this.keysMatch = function(keyValueA, keyValueB) {
+    return (keyValueA.key === keyValueB.key);
+  }
 
   this.listContainsFile = function(fileList, file) {
     for (var f = 0; f < fileList.length; f++ ) {
@@ -63,23 +69,46 @@ myApp.service('ComparisonService', function() {
   }
 
   this.findFileIndexInList = function(file, fileList) {
-    for (var f = 0; f < fileList.length; f++ ) {
-      if (this.filesMatch(fileList[f], file)) {
-        return f;
-      } 
-    }
-    return -1;
+    return this.getIndexOfItemInList(file, fileList, this.filesMatch);
   }
 
   this.addFileToEnvironment = function(file, comparisonObject, environment) {
-    if (!this.listContainsFile(comparisonObject.fileList, file)) {
+    if (!this.listContainsFile(comparisonObject.configFiles, file)) {
       file.existsInEnvironment = [];
       file.existsInEnvironment[environment] = true;
-      comparisonObject.fileList.push(file);
+      comparisonObject.configFiles.push(file);
     } else {
-      var indexOfFile = this.findFileIndexInList(file, comparisonObject.fileList)
-      comparisonObject.fileList[indexOfFile].existsInEnvironment[environment] = true;
+      var indexOfFile = this.findFileIndexInList(file, comparisonObject.configFiles)
+      comparisonObject.configFiles[indexOfFile].existsInEnvironment[environment] = true;
     }
+  }
+
+  this.addOverrideLevelToEnvironment = function(overrideLevel, file, environment) {
+    overrideLevel.existsInEnvironment = [];
+    overrideLevel.existsInEnvironment[environment] = true;
+    file.overrideLevels.push(overrideLevel);
+  }
+
+  this.addKeyValuePairToEnvironment = function(keyValuePair, overrideLevel, environment) {
+    var index = this.getIndexOfItemInList(keyValuePair, overrideLevel.keyValuePairs, this.keysMatch);
+    if (index === -1) {
+      var keyValuePairInsert = {key: keyValuePair.key, existsInEnvironment: [], valueInEnvironment: []}
+      keyValuePairInsert.existsInEnvironment[environment] = true;
+      keyValuePairInsert.valueInEnvironment[environment] = keyValuePair.value;
+      overrideLevel.keyValuePairs.push(keyValuePairInsert);
+    } else {
+      overrideLevel.keyValuePairs[index].existsInEnvironment[environment] = true;
+      overrideLevel.keyValuePairs[index].valueInEnvironment[environment] = keyValuePair.value;
+    }
+  }
+
+  this.getIndexOfItemInList = function(item, list, matchFunction) {
+    for (var i = 0; i < list.length; i++ ) {
+      if (matchFunction(item, list[i])) {
+        return i;
+      }
+    }
+    return -1;
   }
   
 });
