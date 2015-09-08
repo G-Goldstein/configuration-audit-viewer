@@ -1,58 +1,3 @@
-xdescribe('The config audit controller controller', function() {
-  beforeEach(module('configAuditViewer'));
-
-  var ctrl, dataService, $httpBackend;
-  
-  beforeEach(inject(function($controller, _$httpBackend_, ServerDataService) { 
-    dataService = ServerDataService;
-    
-    $httpBackend = _$httpBackend_;
-    $httpBackend.expectGET('../data/SGSSUAT.json').
-        respond(200, [{fileName: "Env_AppLauncher.ini", relativePath: "/", overrideLevels: [{levelDescription: "[Default]", keyValuePairs: [{key: "System", value:"TRACEY"}, {key:"Environment", value:"*ENV"}]}]}]);
-    $httpBackend.expectGET('../data/SGSSPreProd.json').
-        respond(200, [{fileName: "Env_AppLauncher.ini", relativePath: "/", overrideLevels: [{levelDescription: "[Default]", keyValuePairs: [{key: "System", value:"TRACEY"}, {key:"Environment", value:"*ENV"}]}]}]);
-    ctrl = $controller('ConfigAuditController');
-  }));
-
-  it('should have config files available on load', function() {
-    $httpBackend.flush();
-    expect(ctrl.environmentConfigs[0].length).toBe(1);
-  });
-  
-  it('should be able to find the default override level', function() {
-    $httpBackend.flush();
-    expect(ctrl.environmentConfigs[0][0].overrideLevels[0].levelDescription).toBe("[Default]");
-  });
-});
-
-xdescribe('The config audit controller with an error', function() {
-  beforeEach(module('configAuditViewer'));
-
-  var ctrl, dataService, $httpBackend;
-  
-  beforeEach(inject(function($controller, _$httpBackend_, ServerDataService) { 
-    dataService = ServerDataService;
-    
-    $httpBackend = _$httpBackend_;
-    $httpBackend.expectGET('../data/SGSSUAT.json').
-        respond(404, {data: "Configuration audit data not found"});
-    $httpBackend.expectGET('../data/SGSSPreProd.json').
-        respond(404, {data: "Configuration audit data not found"});
-    
-    ctrl = $controller('ConfigAuditController');
-  }));
-
-  it('should initialise variables correctly still', function() {
-    $httpBackend.flush();
-    
-    // expect(ctrl.environmentConfigs[0].length).toBe(0);
-    expect(ctrl.errorMessages[0].data).toBe("Configuration audit data not found"); 
-  });
-  
-  
-
-});
-
 describe('ComparisonService', function() {
 
   beforeEach(module('configAuditViewer'));
@@ -283,7 +228,7 @@ describe('ComparisonService', function() {
 
   describe('addFileToEnvironment', function() {
 
-    var comparisonObject;
+    var configFiles = [];
     var fileA = {
                   fileName: 'fileA',
                   relativePath: '/',
@@ -312,44 +257,50 @@ describe('ComparisonService', function() {
 
 
     beforeEach(function() {
-      comparisonObject = {configFiles: []};
+      configFiles = [];
     });
 
     it('should add a file to an empty environment', function() {
-      ComparisonService.addFileToEnvironment(file1, comparisonObject, 0);
-      expect(ComparisonService.listContainsFile(comparisonObject.configFiles, file1)).toBe(true);
+      ComparisonService.addFileToEnvironment(file1, configFiles, 0);
+      expect(ComparisonService.listContainsFile(configFiles, file1)).toBe(true);
     });
 
-    it('should not add a file to the comparisonObject twice', function() {
-      ComparisonService.addFileToEnvironment(file1, comparisonObject, 0);
-      ComparisonService.addFileToEnvironment(file1, comparisonObject, 1);
-      expect(comparisonObject.configFiles.length).toBe(1);
+    it('should not add a file to the configFiles twice', function() {
+      ComparisonService.addFileToEnvironment(file1, configFiles, 0);
+      ComparisonService.addFileToEnvironment(file1, configFiles, 1);
+      expect(configFiles.length).toBe(1);
     });
 
     it('should identify that an environment contains a file', function() {
-      ComparisonService.addFileToEnvironment(file1, comparisonObject, 0);
-      expect(comparisonObject.configFiles[0].existsInEnvironment[0]).toBe(true);
+      ComparisonService.addFileToEnvironment(file1, configFiles, 0);
+      expect(configFiles[0].existsInEnvironment[0]).toBe(true);
     });
 
     it('should identify which environments contain a file', function() {
-      ComparisonService.addFileToEnvironment(file1, comparisonObject, 0);
-      ComparisonService.addFileToEnvironment(file1, comparisonObject, 1);
-      expect(comparisonObject.configFiles[0].existsInEnvironment[0]).toBe(true);
-      expect(comparisonObject.configFiles[0].existsInEnvironment[1]).toBe(true);
+      ComparisonService.addFileToEnvironment(file1, configFiles, 0);
+      ComparisonService.addFileToEnvironment(file1, configFiles, 1);
+      expect(configFiles[0].existsInEnvironment[0]).toBe(true);
+      expect(configFiles[0].existsInEnvironment[1]).toBe(true);
     });
 
     it('should not assume an environment contains a file that wasn\'t added', function() {
-      ComparisonService.addFileToEnvironment(file1, comparisonObject, 0);
-      ComparisonService.addFileToEnvironment(file2, comparisonObject, 1);
-      expect(comparisonObject.configFiles[0].existsInEnvironment[1]).not.toBe(true);
-      expect(comparisonObject.configFiles[1].existsInEnvironment[0]).not.toBe(true);
+      ComparisonService.addFileToEnvironment(file1, configFiles, 0);
+      ComparisonService.addFileToEnvironment(file2, configFiles, 1);
+      expect(configFiles[0].existsInEnvironment[1]).not.toBe(true);
+      expect(configFiles[1].existsInEnvironment[0]).not.toBe(true);
     });
 
     it('should add the override levels within the file', function() {
-      ComparisonService.addFileToEnvironment(fileA, comparisonObject, 0);
-      ComparisonService.addFileToEnvironment(fileA, comparisonObject, 1);
-      expect(comparisonObject.configFiles[0].overrideLevels[0].existsInEnvironment[0]).toBe(true);
-      expect(comparisonObject.configFiles[0].overrideLevels[0].existsInEnvironment[1]).toBe(true);
+      ComparisonService.addFileToEnvironment(fileA, configFiles, 0);
+      ComparisonService.addFileToEnvironment(fileA, configFiles, 1);
+      expect(configFiles[0].overrideLevels[0].existsInEnvironment[0]).toBe(true);
+      expect(configFiles[0].overrideLevels[0].existsInEnvironment[1]).toBe(true);
+    });
+
+    it('should add a list of files to an environment', function() {
+      var fileList = [fileA, fileB];
+      ComparisonService.addFilesToEnvironment(fileList, configFiles, 0);
+      expect(configFiles.length).toBe(2);
     });
 
   });
