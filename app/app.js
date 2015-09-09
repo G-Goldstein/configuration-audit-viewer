@@ -42,9 +42,9 @@ myApp.service('ComparisonService', ['$q', function($q) {
     return new Promise(function(resolve, reject) {
       var fileList = [];
       for (var e = 0; e < environments.length; e++ ) {
-        comparisonSerivce.addFilesToEnvironment(fileList, environments[e], e);
+        comparisonService.addFilesToEnvironment(fileList, environments[e], e);
       }
-      resolve(fileList);
+      resolve([{fileName: "abc.ini", relativePath: "/"}]);
     })
   }
 
@@ -167,7 +167,7 @@ myApp.controller('ConfigAuditController', ['$scope', '$log', 'ServerDataService'
   this.comparisonObject = [];
   this.environments = [];
   this.loading = false;
-  self = this;  
+  self = this;
 
   this.getConfigFilesFromJson = function(jsonFile, index) {
     self.files[index] = [];
@@ -187,14 +187,13 @@ myApp.controller('ConfigAuditController', ['$scope', '$log', 'ServerDataService'
     this.environments = [];
     ClientDataService.getData(fileList).then(function(response) {
       self.environments = response;
-      self.getComparisonObject();
+      comparisonObject = ComparisonService.createComparisonFileList(self.environments);
       self.loading=false;
       $scope.$apply();
     }, function(errResponse) {
       $log.error(errResponse);
       self.errorMessage = errResponse;
       self.environments = [];
-      self.getComparisonObject();
       self.loading=false;
       $scope.$apply();
     });

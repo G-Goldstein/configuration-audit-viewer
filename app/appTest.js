@@ -390,3 +390,35 @@ describe('ComparisonService', function() {
 
 
 });
+
+describe('ComparisonService\'s createComparisonFileList promise', function() {
+  var ComparisonService;
+  var environments = [];
+  var comparisonFileList = [];
+  var file1;
+  var result = [];
+  var promise;
+  beforeEach(module('configAuditViewer'));
+
+  beforeEach(inject(function(_ComparisonService_) {
+      ComparisonService = _ComparisonService_;
+      file1 = {fileName: "abc.ini", relativePath: "/"};
+      environments = [[file1]];
+  }));
+
+  beforeEach(function(done) {
+    result = [];
+    promise = ComparisonService.createComparisonFileList(environments).then(function(response) {
+      result = response;
+      done();
+    }, function(error){
+      result = response;
+      done();
+    });
+  });
+
+  it('should asynchronously produce a comparison file list from a list of environments', function() {
+    expect(ComparisonService.listContainsFile(result, file1)).toBe(true);
+  });
+
+})
