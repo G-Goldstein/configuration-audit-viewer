@@ -27,7 +27,7 @@
           <li class="overrideLevel overrideLevel-{{overrideLevel.highlight}} config-{{configViewer.overrideLevelColor(overrideLevel)}}-{{configViewer.openOrClosed(overrideLevel)}}" ng-repeat="overrideLevel in configFile.overrideLevels">
             <div class="overrideLevelHeader noSelect" ng-mouseover="overrideLevel.highlight=true" ng-mouseleave="overrideLevel.highlight=false" ng-click="overrideLevel.show = !overrideLevel.show">{{overrideLevel.levelDescription}}</div ng-mouseover="overrideLevel.highlight">
               <div class="tableContainer" ng-hide="!overrideLevel.show" ng-show="overrideLevel.show"><table>
-                <tr ng-class="{ evenRow: !($index % 2), oddRow: !!($index % 2) }" ng-repeat="keyValue in overrideLevel.keyValues | orderBy:'key'">
+                <tr ng-class="{ evenRow: !($index % 2), oddRow: !!($index % 2) }" ng-repeat="keyValue in overrideLevel.keyValuePairs | orderBy:'key'">
                   <td class="key value-{{configViewer.valueColor(keyValue)}}">{{keyValue.key}}</td>
                   <td ng-repeat="value in keyValue.valueInEnvironment track by $index">{{value}}</td>
                 </tr>

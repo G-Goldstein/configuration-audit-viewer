@@ -97,7 +97,9 @@ myApp.service('ComparisonService', ['$q', function($q) {
         fileName: file.fileName,
         relativePath: file.relativePath,
         existsInEnvironment: [],
-        overrideLevels: []
+        overrideLevels: [],
+        highlight: false,
+        show: false
       };
       fileInsert.existsInEnvironment[environment] = true;
       this.addOverrideLevelsToEnvironment(file.overrideLevels, fileInsert, environment);
@@ -120,7 +122,9 @@ myApp.service('ComparisonService', ['$q', function($q) {
     if (index === -1) {
       var overrideLevelInsert = {levelDescription: overrideLevel.levelDescription,
                                  existsInEnvironment: [],
-                                 keyValuePairs: []}
+                                 keyValuePairs: [],
+                                 show: true
+                               }
       overrideLevelInsert.existsInEnvironment[environment] = true;
       this.addKeyValuePairsToEnvironment(overrideLevel.keyValuePairs, overrideLevelInsert, environment);
       file.overrideLevels.push(overrideLevelInsert);
@@ -139,7 +143,12 @@ myApp.service('ComparisonService', ['$q', function($q) {
   this.addKeyValuePairToEnvironment = function(keyValuePair, overrideLevel, environment) {
     var index = this.getIndexOfItemInList(keyValuePair, overrideLevel.keyValuePairs, this.keysMatch);
     if (index === -1) {
-      var keyValuePairInsert = {key: keyValuePair.key, existsInEnvironment: [], valueInEnvironment: []}
+      var keyValuePairInsert = {
+        key: keyValuePair.key,
+        existsInEnvironment: [],
+        valueInEnvironment: [],
+        show: true
+      }
       keyValuePairInsert.existsInEnvironment[environment] = true;
       keyValuePairInsert.valueInEnvironment[environment] = keyValuePair.value;
       overrideLevel.keyValuePairs.push(keyValuePairInsert);
@@ -170,14 +179,13 @@ myApp.controller('ConfigAuditController', ['$scope', '$log', 'ServerDataService'
 
   this.files = [];
   this.errorMessage = '';
-  this.comparisonObjectBuilder = [];
-  this.comparisonObject = [];
+  this.comparisonObject = {configFiles: []};
   this.environments = [];
   this.loading = false;
   self = this;
 
   this.getConfigFilesFromJson = function(jsonFile, index) {
-    self.files[index] = [];
+    self.createComparisonFileList = [];
     self.errorMessages[index] = '';
     ServerDataService.getData(jsonFile).then(function(response) {
       self.files[index] = response.data;
@@ -192,9 +200,13 @@ myApp.controller('ConfigAuditController', ['$scope', '$log', 'ServerDataService'
   this.uploadFiles = function() {
     var fileList = $scope.files;
     this.environments = [];
+    this.comparisonObject = {configFiles: []};
     ClientDataService.getData(fileList).then(function(response) {
       self.environments = response;
-      comparisonObject = ComparisonService.createComparisonFileList(self.environments);
+      ComparisonService.createComparisonFileList(self.environments).then(function(response) {
+        self.comparisonObject.configFiles = response;
+        $scope.$apply();
+      });
       self.loading=false;
       $scope.$apply();
     }, function(errResponse) {
@@ -241,8 +253,8 @@ myApp.controller('ConfigAuditController', ['$scope', '$log', 'ServerDataService'
         return "absence";
       }
     }
-    for (var k = 0; k < overrideLevel.keyValues.length; k++ ) {
-      var key = overrideLevel.keyValues[k];
+    for (var k = 0; k < overrideLevel.keyValuePairs.length; k++ ) {
+      var key = overrideLevel.keyValuePairs[k];
       if (!this.matchingValuesForKey(key)) {
         return "difference";
       }
