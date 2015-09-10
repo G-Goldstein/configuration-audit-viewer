@@ -459,7 +459,7 @@ describe('ComparisonService\'s createComparisonFileList promise', function() {
 
   beforeEach(inject(function(_ComparisonService_) {
       ComparisonService = _ComparisonService_;
-      file1 = {fileName: "abc.ini", relativePath: "/"};
+      file1 = {fileName: "abc.ini", relativePath: "/", overrideLevels: []};
       environments = [[file1]];
   }));
 
@@ -475,7 +475,7 @@ describe('ComparisonService\'s createComparisonFileList promise', function() {
   });
 
   it('should asynchronously produce a comparison file list from a list of environments', function() {
-    expect(result).toMatchFile(file1);
+    expect(result[0]).toMatchFile(file1);
   });
 
 })

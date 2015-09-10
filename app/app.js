@@ -42,7 +42,7 @@ myApp.service('ComparisonService', ['$q', function($q) {
     return new Promise(function(resolve, reject) {
       var fileList = [];
       for (var e = 0; e < environments.length; e++ ) {
-        comparisonService.addFilesToEnvironment(fileList, environments[e], e);
+        comparisonService.addFilesToEnvironment(environments[e], fileList, e);
       }
       resolve(fileList);
     })
