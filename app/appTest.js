@@ -449,6 +449,9 @@ describe('ComparisonService\'s createComparisonFileList promise', function() {
   var environments = [];
   var comparisonFileList = [];
   var file1;
+  var file2;
+  var file3;
+  var file4;
   var result = [];
   var promise;
 
@@ -459,8 +462,11 @@ describe('ComparisonService\'s createComparisonFileList promise', function() {
 
   beforeEach(inject(function(_ComparisonService_) {
       ComparisonService = _ComparisonService_;
-      file1 = {fileName: "abc.ini", relativePath: "/", overrideLevels: []};
-      environments = [[file1]];
+      file1 = {fileName: "abc.ini", relativePath: "/", overrideLevels: [{levelDescription: "[Default]", keyValuePairs: [{key: "Colour", value:"Red"}]}, {levelDescription: "[Extra]", keyValuePairs: []}]};
+      file2 = {fileName: "def.ini", relativePath: "/", overrideLevels: []};
+      file3 = {fileName: "ghi.ini", relativePath: "/", overrideLevels: []};
+      file4 = {fileName: "abc.ini", relativePath: "/", overrideLevels: [{levelDescription: "[Default]", keyValuePairs: [{key: "Colour", value:"Blue"}]}]};
+      environments = [[file1, file2], [file2, file3], [file4]];
   }));
 
   beforeEach(function(done) {
@@ -477,5 +483,27 @@ describe('ComparisonService\'s createComparisonFileList promise', function() {
   it('should asynchronously produce a comparison file list from a list of environments', function() {
     expect(result[0]).toMatchFile(file1);
   });
+
+  it('should fill gaps in existence for files', function() {
+    expect(result[0].existsInEnvironment[0]).toBe(true);
+    expect(result[0].existsInEnvironment[1]).toBe(false);
+    expect(result[0].existsInEnvironment[2]).toBe(true);
+  })
+
+  it('should fill gaps in existence of override levels', function() {
+    expect(result[0].overrideLevels[0].existsInEnvironment[0]).toBe(true);
+    expect(result[0].overrideLevels[0].existsInEnvironment[2]).toBe(true);
+    expect(result[0].overrideLevels[0].existsInEnvironment[1]).toBe(false);
+  })
+
+  it('should fill gaps in existence and value of keyValuePairs', function() {
+    expect(result[0].overrideLevels[0].keyValuePairs[0].key).toBe('Colour')
+    expect(result[0].overrideLevels[0].keyValuePairs[0].existsInEnvironment[0]).toBe(true);
+    expect(result[0].overrideLevels[0].keyValuePairs[0].valueInEnvironment[0]).toBe('Red');
+    expect(result[0].overrideLevels[0].keyValuePairs[0].existsInEnvironment[2]).toBe(true);
+    expect(result[0].overrideLevels[0].keyValuePairs[0].valueInEnvironment[2]).toBe('Blue');
+    // expect(result[0].overrideLevels[0].keyValuePairs[0].existsInEnvironment[1]).toBe(false);
+    // expect(result[0].overrideLevels[0].keyValuePairs[0].valueInEnvironment[1]).toBe('');
+  })
 
 })

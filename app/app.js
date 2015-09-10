@@ -42,7 +42,7 @@ myApp.service('ComparisonService', ['$q', function($q) {
     return new Promise(function(resolve, reject) {
       var fileList = [];
       for (var e = 0; e < environments.length; e++ ) {
-        comparisonService.addFilesToEnvironment(environments[e], fileList, e);
+        comparisonService.addFilesToEnvironment(environments[e], fileList, e, environments.length);
       }
       resolve(fileList);
     })
@@ -91,7 +91,7 @@ myApp.service('ComparisonService', ['$q', function($q) {
     return this.getIndexOfItemInList(file, fileList, this.filesMatch);
   }
 
-  this.addFileToEnvironment = function(file, configFiles, environment) {
+  this.addFileToEnvironment = function(file, configFiles, environment, environmentCount) {
     if (!this.listContainsFile(configFiles, file)) {
       var fileInsert = {
         fileName: file.fileName,
@@ -101,23 +101,26 @@ myApp.service('ComparisonService', ['$q', function($q) {
         highlight: false,
         show: false
       };
+      for (var e = 0; e < environmentCount; e++ ) {
+        fileInsert.existsInEnvironment[e] = false;
+      }
       fileInsert.existsInEnvironment[environment] = true;
-      this.addOverrideLevelsToEnvironment(file.overrideLevels, fileInsert, environment);
+      this.addOverrideLevelsToEnvironment(file.overrideLevels, fileInsert, environment, environmentCount);
       configFiles.push(fileInsert);
     } else {
       var indexOfFile = this.findFileIndexInList(file, configFiles);
       configFiles[indexOfFile].existsInEnvironment[environment] = true;
-      this.addOverrideLevelsToEnvironment(file.overrideLevels, configFiles[indexOfFile], environment);
+      this.addOverrideLevelsToEnvironment(file.overrideLevels, configFiles[indexOfFile], environment, environmentCount);
     }
   }
 
-  this.addFilesToEnvironment = function(fileList, configFiles, environment) {
+  this.addFilesToEnvironment = function(fileList, configFiles, environment, environmentCount) {
     for (f = 0; f < fileList.length; f++ ) {
-      this.addFileToEnvironment(fileList[f], configFiles, environment);
+      this.addFileToEnvironment(fileList[f], configFiles, environment, environmentCount);
     }
   }
 
-  this.addOverrideLevelToEnvironment = function(overrideLevel, file, environment) {
+  this.addOverrideLevelToEnvironment = function(overrideLevel, file, environment, environmentCount) {
     var index = this.getIndexOfItemInList(overrideLevel, file.overrideLevels, this.overrideLevelsMatch);
     if (index === -1) {
       var overrideLevelInsert = {levelDescription: overrideLevel.levelDescription,
@@ -126,22 +129,25 @@ myApp.service('ComparisonService', ['$q', function($q) {
                                  show: true,
                                  highlight: false
                                }
+      for (var e = 0; e < environmentCount; e++ ) {
+        overrideLevelInsert.existsInEnvironment[e] = false;
+      }
       overrideLevelInsert.existsInEnvironment[environment] = true;
-      this.addKeyValuePairsToEnvironment(overrideLevel.keyValuePairs, overrideLevelInsert, environment);
+      this.addKeyValuePairsToEnvironment(overrideLevel.keyValuePairs, overrideLevelInsert, environment, environmentCount);
       file.overrideLevels.push(overrideLevelInsert);
     } else {
       file.overrideLevels[index].existsInEnvironment[environment] = true;
-      this.addKeyValuePairsToEnvironment(overrideLevel.keyValuePairs, file.overrideLevels[index], environment);
+      this.addKeyValuePairsToEnvironment(overrideLevel.keyValuePairs, file.overrideLevels[index], environment, environmentCount);
     }
   }
 
-  this.addOverrideLevelsToEnvironment = function(overrideLevels, file, environment) {
+  this.addOverrideLevelsToEnvironment = function(overrideLevels, file, environment, environmentCount) {
     for (o = 0; o < overrideLevels.length; o++ ) {
-      this.addOverrideLevelToEnvironment(overrideLevels[o], file, environment);
+      this.addOverrideLevelToEnvironment(overrideLevels[o], file, environment, environmentCount);
     }
   }
 
-  this.addKeyValuePairToEnvironment = function(keyValuePair, overrideLevel, environment) {
+  this.addKeyValuePairToEnvironment = function(keyValuePair, overrideLevel, environment, environmentCount) {
     var index = this.getIndexOfItemInList(keyValuePair, overrideLevel.keyValuePairs, this.keysMatch);
     if (index === -1) {
       var keyValuePairInsert = {
@@ -149,6 +155,10 @@ myApp.service('ComparisonService', ['$q', function($q) {
         existsInEnvironment: [],
         valueInEnvironment: [],
         show: true
+      }
+      for (var e = 0; e < environmentCount; e++ ) {
+        keyValuePairInsert.existsInEnvironment[e] = false;
+        keyValuePairInsert.valueInEnvironment[e] = '';
       }
       keyValuePairInsert.existsInEnvironment[environment] = true;
       keyValuePairInsert.valueInEnvironment[environment] = keyValuePair.value;
@@ -159,9 +169,9 @@ myApp.service('ComparisonService', ['$q', function($q) {
     }
   }
 
-  this.addKeyValuePairsToEnvironment = function(keyValuePairs, overrideLevel, environment) {
+  this.addKeyValuePairsToEnvironment = function(keyValuePairs, overrideLevel, environment, environmentCount) {
     for (k = 0; k < keyValuePairs.length; k++ ) {
-      this.addKeyValuePairToEnvironment(keyValuePairs[k], overrideLevel, environment);
+      this.addKeyValuePairToEnvironment(keyValuePairs[k], overrideLevel, environment, environmentCount);
     }
   }
 
