@@ -39,6 +39,32 @@ describe('ComparisonService', function() {
       expect(ComparisonService.filesMatch(file4, file4withextrastuff)).toBe(true);
     })
   });
+  describe('isFile', function() {
+    it('should be true for anything with a fileName and relativePath', function() {
+      expect(ComparisonService.isFile(file1)).toBe(true);
+      expect(ComparisonService.isFile(file2)).toBe(true);
+      expect(ComparisonService.isFile(file6)).toBe(true);
+      expect(ComparisonService.isFile(file7)).toBe(true);
+    });
+    it('should be false for an undefined thing', function() {
+      var notAThing;
+      expect(ComparisonService.isFile(notAThing)).toBe(false);
+    })
+    it('should be false for an array', function() {
+      var array = [];
+      expect(ComparisonService.isFile(array)).toBe(false);
+    })
+    it('should be false for an object with only one of the two required properties', function() {
+      var thingWithFileName = {fileName: 'hello'};
+      var thingWithRelativePath = {relativePath: 'here\'s a path!'};
+      expect(ComparisonService.isFile(thingWithFileName)).toBe(false);
+      expect(ComparisonService.isFile(thingWithRelativePath)).toBe(false);
+    })
+    it('should be true for an object with both properties and some other properties', function() {
+      var fileExtra = {fileName: 'fileExtra', relativePath: 'here', colour: 'Red', shape: 'Circle'};
+      expect(ComparisonService.isFile(fileExtra)).toBe(true);
+    })
+  })
   describe('overrideLevelsMatch', function() {
     it('should be true when the levelDescriptions are the same', function() {
       var overrideLevel1 = {levelDescription: 'Level desc 1'};
@@ -392,13 +418,44 @@ describe('ComparisonService', function() {
 });
 
 describe('ComparisonService\'s createComparisonFileList promise', function() {
+
+  var customMatchers = {
+    toMatchFile: function(util, customEqualityTesters) {
+      return {
+        compare: function(actual, expected) {
+          var result = {};
+          if (!ComparisonService.isFile(actual)) {
+            result.pass = false;
+            result.message = 'actual object ' + JSON.stringify(actual) + " is not a file";
+            return result;
+          } else if (!ComparisonService.isFile(expected)) {
+            result.pass = false;
+            result.message = 'expected object ' + JSON.stringify(expected) + " is not a file";
+            return result;
+          }
+          result.pass = ComparisonService.filesMatch(actual, expected);
+          if (result.pass) {
+            result.message = "file " + JSON.stringify(actual) + " matched file " + JSON.stringify(expected);
+          } else {
+            result.message = "file " + JSON.stringify(actual) + " did not match file " + JSON.stringify(expected);
+          }
+          return result;
+        }
+      }
+    }
+  }
+
   var ComparisonService;
   var environments = [];
   var comparisonFileList = [];
   var file1;
   var result = [];
   var promise;
+
   beforeEach(module('configAuditViewer'));
+  beforeEach(function() {
+    jasmine.addMatchers(customMatchers);
+  })
 
   beforeEach(inject(function(_ComparisonService_) {
       ComparisonService = _ComparisonService_;
@@ -418,7 +475,7 @@ describe('ComparisonService\'s createComparisonFileList promise', function() {
   });
 
   it('should asynchronously produce a comparison file list from a list of environments', function() {
-    expect(ComparisonService.listContainsFile(result, file1)).toBe(true);
+    expect(result).toMatchFile(file1);
   });
 
 })

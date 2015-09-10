@@ -44,7 +44,7 @@ myApp.service('ComparisonService', ['$q', function($q) {
       for (var e = 0; e < environments.length; e++ ) {
         comparisonService.addFilesToEnvironment(fileList, environments[e], e);
       }
-      resolve([{fileName: "abc.ini", relativePath: "/"}]);
+      resolve(fileList);
     })
   }
 
@@ -64,6 +64,13 @@ myApp.service('ComparisonService', ['$q', function($q) {
   this.filesMatch = function(fileA, fileB) {
     return (fileA.fileName === fileB.fileName && fileA.relativePath === fileB.relativePath)
   };
+  this.isFile = function(object) {
+    if (object === undefined) {
+      return false;
+    } else {
+      return (object.hasOwnProperty('fileName') && object.hasOwnProperty('relativePath'));
+    }
+  }
   this.overrideLevelsMatch = function(overrideLevelA, overrideLevelB) {
     return (overrideLevelA.levelDescription === overrideLevelB.levelDescription);
   }
