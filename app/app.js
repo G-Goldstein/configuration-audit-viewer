@@ -123,7 +123,8 @@ myApp.service('ComparisonService', ['$q', function($q) {
       var overrideLevelInsert = {levelDescription: overrideLevel.levelDescription,
                                  existsInEnvironment: [],
                                  keyValuePairs: [],
-                                 show: true
+                                 show: true,
+                                 highlight: false
                                }
       overrideLevelInsert.existsInEnvironment[environment] = true;
       this.addKeyValuePairsToEnvironment(overrideLevel.keyValuePairs, overrideLevelInsert, environment);
