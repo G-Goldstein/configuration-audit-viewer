@@ -502,8 +502,8 @@ describe('ComparisonService\'s createComparisonFileList promise', function() {
     expect(result[0].overrideLevels[0].keyValuePairs[0].valueInEnvironment[0]).toBe('Red');
     expect(result[0].overrideLevels[0].keyValuePairs[0].existsInEnvironment[2]).toBe(true);
     expect(result[0].overrideLevels[0].keyValuePairs[0].valueInEnvironment[2]).toBe('Blue');
-    // expect(result[0].overrideLevels[0].keyValuePairs[0].existsInEnvironment[1]).toBe(false);
-    // expect(result[0].overrideLevels[0].keyValuePairs[0].valueInEnvironment[1]).toBe('');
+    expect(result[0].overrideLevels[0].keyValuePairs[0].existsInEnvironment[1]).toBe(false);
+    expect(result[0].overrideLevels[0].keyValuePairs[0].valueInEnvironment[1]).toBe('');
   })
 
 })
