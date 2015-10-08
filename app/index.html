@@ -1,5 +1,5 @@
 <!doctype html>
-<html ng-app="configAuditViewer">
+<html ng-app="configAuditViewer2">
 <head>
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -12,7 +12,7 @@
   <script src="bower_components/angular/angular.js"></script>
   <script src="bower_components/angular-route/angular-route.js"></script>
   <script src="bower_components/angular-mocks/angular-mocks.js"></script>
-  <script src="app.js"></script>
+  <script src="app2.js"></script>
 </head>
 <body>
 
@@ -24,16 +24,22 @@
     <input type="file" multiple file-model="files" accept=".json" /><span ng-hide="!configViewer.loading">Loading...</span>
     <span>{{configViewer.errorMessage}}</span>
     <ul>
-      <li ng-repeat="configFile in configViewer.comparisonObject.configFiles | orderBy:['relativePath', 'fileName']">
+      <li ng-repeat="configFile in configViewer.comparisonObject.configFiles | orderBy:['file']">
       <div class="configFile configFile-{{configFile.highlight}} config-{{configViewer.configFileColor(configFile)}}-{{configViewer.openOrClosed(configFile)}}">
-        <div class="configFileHeader noSelect" ng-mouseover="configFile.highlight=true" ng-mouseleave="configFile.highlight=false" ng-click="configFile.show = !configFile.show">{{configFile.relativePath}}{{configFile.fileName}}</div>
+        <div class="configFileHeader noSelect" ng-mouseover="configFile.highlight=true" ng-mouseleave="configFile.highlight=false" ng-click="configFile.show = !configFile.show">{{configFile.file}}</div>
+          <div class="tableContainer" ng-hide="!configFile.show" ng-show="configFile.show"><table>
+            <tr ng-class="{ evenRow: !($index % 2), oddRow: !!($index % 2) }" ng-repeat="key in configViewer.keysInDictionary(configFile.dictionary) | orderBy:'key'">
+              <td class="key value-{{configViewer.valueColor(configFile.dictionary[key])}}">{{key}}</td>
+              <td ng-repeat="value in configFile.dictionary[key].valueInEnvironment track by $index">{{value}}</td>
+            </tr>
+          </table></div>
         <ul ng-show="configFile.show">
-          <li class="overrideLevel overrideLevel-{{overrideLevel.highlight}} config-{{configViewer.overrideLevelColor(overrideLevel)}}-{{configViewer.openOrClosed(overrideLevel)}}" ng-repeat="overrideLevel in configFile.overrideLevels">
-            <div class="overrideLevelHeader noSelect" ng-mouseover="overrideLevel.highlight=true" ng-mouseleave="overrideLevel.highlight=false" ng-click="overrideLevel.show = !overrideLevel.show">{{overrideLevel.levelDescription}}</div ng-mouseover="overrideLevel.highlight">
-              <div class="tableContainer" ng-hide="!overrideLevel.show" ng-show="overrideLevel.show"><table>
-                <tr ng-class="{ evenRow: !($index % 2), oddRow: !!($index % 2) }" ng-repeat="keyValue in overrideLevel.keyValuePairs | orderBy:'key'">
-                  <td class="key value-{{configViewer.valueColor(keyValue)}}">{{keyValue.key}}</td>
-                  <td ng-repeat="value in keyValue.valueInEnvironment track by $index">{{value}}</td>
+          <li class="profile profile-{{profile.highlight}} config-{{configViewer.profileColor(profile)}}-{{configViewer.openOrClosed(profile)}}" ng-repeat="profile in configFile.profiles">
+            <div class="profileHeader noSelect" ng-mouseover="profile.highlight=true" ng-mouseleave="profile.highlight=false" ng-click="profile.show = !profile.show">{{profile.profile}}</div ng-mouseover="profile.highlight">
+              <div class="tableContainer" ng-hide="!profile.show" ng-show="profile.show"><table>
+                <tr ng-class="{ evenRow: !($index % 2), oddRow: !!($index % 2) }" ng-repeat="key in configViewer.keysInDictionary(profile.dictionary) | orderBy:'key'">
+                  <td class="key value-{{configViewer.valueColor(profile.dictionary[key])}}">{{key}}</td>
+                  <td ng-repeat="value in profile.dictionary[key].valueInEnvironment track by $index">{{value}}</td>
                 </tr>
               </table></div>
           </li>

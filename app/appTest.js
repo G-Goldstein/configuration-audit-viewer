@@ -1,4 +1,4 @@
-describe('ComparisonService', function() {
+xdescribe('ComparisonService', function() {
 
   beforeEach(module('configAuditViewer'));
 

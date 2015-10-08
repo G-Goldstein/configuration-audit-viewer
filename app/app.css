@@ -39,13 +39,13 @@ ul {
     background-color: #e3e3e3;
 }
 
-.overrideLevelHeader {
+.profileHeader {
     padding: 10px;
     border-radius: 5px;
     cursor: pointer;
 }
 
-.overrideLevel {
+.profile {
     padding: 4px;
     padding-left: 10px;
     border-radius: 5px;
@@ -54,11 +54,11 @@ ul {
     box-shadow: 1px 1px #d0d0d0, inset 1px 1px 0 rgba(255, 255, 255, 0.3);
 }
 
-.overrideLevel-true {
+.profile-true {
     background-color: #eeeeee;
 }
 
-.overrideLevel-false {
+.profile-false {
     background-color: #f3f3f3;
 }
 
