@@ -42,40 +42,32 @@ myApp.service('ComparisonService', ['$q', function($q) {
     return new Promise(function(resolve, reject) {
       var fileList = [];
       for (var e = 0; e < environments.length; e++ ) {
-        comparisonService.addFilesToEnvironment(environments[e], fileList, e, environments.length);
+        comparisonService.addFilesToEnvironment(environments[e].config_files, fileList, e, environments.length);
       }
+      comparisonService.color_in_file_list(fileList);
       resolve(fileList);
     })
   }
 
-  this.uniqueFiles = function(environments) {
-    var fileListBuilder = [];
-    for (var env = 0; env < environments.length; env++ ) {
-      for (var fil = 0; fil < environments[env].configFiles.length; fil ++) {
-        var file = {relativePath: environments[env].configFiles[fil].relativePath, fileName: environments[env].configFiles[fil].fileName, existsInEnvironment: [true, false]}
-        if (!this.listContainsFile(fileListBuilder, file)) {
-          fileListBuilder.push(file);
-        }
-      }
-    }
-    return fileListBuilder;
-  };
-
   this.filesMatch = function(fileA, fileB) {
-    return (fileA.fileName === fileB.fileName && fileA.relativePath === fileB.relativePath)
+    return (fileA.file === fileB.file)
   };
   this.isFile = function(object) {
     if (object === undefined) {
       return false;
     } else {
-      return (object.hasOwnProperty('fileName') && object.hasOwnProperty('relativePath'));
+      return (object.hasOwnProperty('file'));
     }
   }
-  this.overrideLevelsMatch = function(overrideLevelA, overrideLevelB) {
-    return (overrideLevelA.levelDescription === overrideLevelB.levelDescription);
+  this.profilesMatch = function(profileA, profileB) {
+    return (profileA.profile === profileB.profile);
   }
-  this.keysMatch = function(keyValueA, keyValueB) {
-    return (keyValueA.key === keyValueB.key);
+  this.keysMatch = function(keyA, keyB) {
+    return (keyA === keyB);
+  }
+
+  this.hasDictionary = function(profile) {
+    return ((typeof profile !== 'undefined') && ('dictionary' in profile))
   }
 
   this.listContainsFile = function(fileList, file) {
@@ -91,87 +83,93 @@ myApp.service('ComparisonService', ['$q', function($q) {
     return this.getIndexOfItemInList(file, fileList, this.filesMatch);
   }
 
-  this.addFileToEnvironment = function(file, configFiles, environment, environmentCount) {
-    if (!this.listContainsFile(configFiles, file)) {
+  this.addFileToEnvironment = function(file, comparisonFiles, environment, environmentCount) {
+    if (!this.listContainsFile(comparisonFiles, file)) {
       var fileInsert = {
-        fileName: file.fileName,
-        relativePath: file.relativePath,
+        file: file.file,
         existsInEnvironment: [],
-        overrideLevels: [],
+        profiles: [],
         highlight: false,
-        show: false
+        show: false,
+        dictionary: {}
       };
       for (var e = 0; e < environmentCount; e++ ) {
         fileInsert.existsInEnvironment[e] = false;
       }
       fileInsert.existsInEnvironment[environment] = true;
-      this.addOverrideLevelsToEnvironment(file.overrideLevels, fileInsert, environment, environmentCount);
-      configFiles.push(fileInsert);
+      this.addProfilesToEnvironment(file.profiles, fileInsert, environment, environmentCount);
+      this.addDictionaryToEnvironment(file.dictionary, fileInsert, environment, environmentCount);
+      comparisonFiles.push(fileInsert);
     } else {
-      var indexOfFile = this.findFileIndexInList(file, configFiles);
-      configFiles[indexOfFile].existsInEnvironment[environment] = true;
-      this.addOverrideLevelsToEnvironment(file.overrideLevels, configFiles[indexOfFile], environment, environmentCount);
+      var indexOfFile = this.findFileIndexInList(file, comparisonFiles);
+      comparisonFiles[indexOfFile].existsInEnvironment[environment] = true;
+      this.addProfilesToEnvironment(file.profiles, comparisonFiles[indexOfFile], environment, environmentCount);
+      this.addDictionaryToEnvironment(file.dictionary, comparisonFiles[indexOfFile], environment, environmentCount);
     }
   }
 
-  this.addFilesToEnvironment = function(fileList, configFiles, environment, environmentCount) {
+  this.addFilesToEnvironment = function(fileList, comparisonFiles, environment, environmentCount) {
     for (var f = 0; f < fileList.length; f++ ) {
-      this.addFileToEnvironment(fileList[f], configFiles, environment, environmentCount);
+      this.addFileToEnvironment(fileList[f], comparisonFiles, environment, environmentCount);
     }
   }
 
-  this.addOverrideLevelToEnvironment = function(overrideLevel, file, environment, environmentCount) {
-    var index = this.getIndexOfItemInList(overrideLevel, file.overrideLevels, this.overrideLevelsMatch);
+  this.addProfileToEnvironment = function(profile, file, environment, environmentCount) {
+    var index = this.getIndexOfItemInList(profile, file.profiles, this.profilesMatch);
     if (index === -1) {
-      var overrideLevelInsert = {levelDescription: overrideLevel.levelDescription,
+      var profileInsert = {profile: profile.profile,
                                  existsInEnvironment: [],
-                                 keyValuePairs: [],
+                                 dictionary: {},
                                  show: true,
                                  highlight: false
                                }
       for (var e = 0; e < environmentCount; e++ ) {
-        overrideLevelInsert.existsInEnvironment[e] = false;
+        profileInsert.existsInEnvironment[e] = false;
       }
-      overrideLevelInsert.existsInEnvironment[environment] = true;
-      this.addKeyValuePairsToEnvironment(overrideLevel.keyValuePairs, overrideLevelInsert, environment, environmentCount);
-      file.overrideLevels.push(overrideLevelInsert);
+      profileInsert.existsInEnvironment[environment] = true;
+      this.addDictionaryToEnvironment(profile.dictionary, profileInsert, environment, environmentCount);
+      file.profiles.push(profileInsert);
     } else {
-      file.overrideLevels[index].existsInEnvironment[environment] = true;
-      this.addKeyValuePairsToEnvironment(overrideLevel.keyValuePairs, file.overrideLevels[index], environment, environmentCount);
+      file.profiles[index].existsInEnvironment[environment] = true;
+      this.addDictionaryToEnvironment(profile.dictionary, file.profiles[index], environment, environmentCount);
     }
   }
 
-  this.addOverrideLevelsToEnvironment = function(overrideLevels, file, environment, environmentCount) {
-    for (o = 0; o < overrideLevels.length; o++ ) {
-      this.addOverrideLevelToEnvironment(overrideLevels[o], file, environment, environmentCount);
+  this.addProfilesToEnvironment = function(profiles, file, environment, environmentCount) {
+    if (typeof profiles === 'undefined') {
+      return;
+    }
+    for (var o = 0; o < profiles.length; o++ ) {
+      this.addProfileToEnvironment(profiles[o], file, environment, environmentCount);
     }
   }
 
-  this.addKeyValuePairToEnvironment = function(keyValuePair, overrideLevel, environment, environmentCount) {
-    var index = this.getIndexOfItemInList(keyValuePair, overrideLevel.keyValuePairs, this.keysMatch);
-    if (index === -1) {
-      var keyValuePairInsert = {
-        key: keyValuePair.key,
-        existsInEnvironment: [],
-        valueInEnvironment: [],
-        show: true
-      }
+  this.addKeyValuePairToEnvironment = function(key, value, profile, environment, environmentCount) {
+    if (!(key in profile.dictionary)) {
+      var keyValuePairInsert = {}
+      keyValuePairInsert.existsInEnvironment = []
+      keyValuePairInsert.valueInEnvironment = []
       for (var e = 0; e < environmentCount; e++ ) {
         keyValuePairInsert.existsInEnvironment[e] = false;
         keyValuePairInsert.valueInEnvironment[e] = '';
       }
       keyValuePairInsert.existsInEnvironment[environment] = true;
-      keyValuePairInsert.valueInEnvironment[environment] = keyValuePair.value;
-      overrideLevel.keyValuePairs.push(keyValuePairInsert);
+      keyValuePairInsert.valueInEnvironment[environment] = value;
+      profile.dictionary[key] = keyValuePairInsert;
     } else {
-      overrideLevel.keyValuePairs[index].existsInEnvironment[environment] = true;
-      overrideLevel.keyValuePairs[index].valueInEnvironment[environment] = keyValuePair.value;
+      profile.dictionary[key].existsInEnvironment[environment] = true;
+      profile.dictionary[key].valueInEnvironment[environment] = value;
     }
   }
 
-  this.addKeyValuePairsToEnvironment = function(keyValuePairs, overrideLevel, environment, environmentCount) {
-    for (k = 0; k < keyValuePairs.length; k++ ) {
-      this.addKeyValuePairToEnvironment(keyValuePairs[k], overrideLevel, environment, environmentCount);
+  this.addDictionaryToEnvironment = function(dictionary, profile, environment, environmentCount) {
+    if (typeof dictionary === 'undefined') {
+      return;
+    }
+    for (var key in dictionary) {
+      if (dictionary.hasOwnProperty(key)) {
+        this.addKeyValuePairToEnvironment(key, dictionary[key], profile, environment, environmentCount);
+      }
     }
   }
 
@@ -182,6 +180,87 @@ myApp.service('ComparisonService', ['$q', function($q) {
       }
     }
     return -1;
+  }
+
+  this.color_in_file_list = function(file_list) {
+    for (var f in file_list) {
+      file = file_list[f];
+      file.color = this.configFileColor(file);
+      for (var k in file.dictionary) {
+        key = file.dictionary[k];
+        key.color = this.valueColor(key)
+      }
+      for (var p in file.profiles) {
+        profile = file.profiles[p]
+        profile.color = this.profileColor(profile)
+        for (var q in profile.dictionary) {
+          key = profile.dictionary[q]
+          key.color = this.valueColor(key)
+        }
+      }
+    }
+  }
+
+  this.matchingValuesForKey = function(key) {
+    if (key.existsInEnvironment.length == 0) {
+      return true;
+    } else {
+      for (var i = 0; i < key.valueInEnvironment.length; i++ ) {
+        if ((!key.existsInEnvironment[i]) || key.valueInEnvironment[i] != key.valueInEnvironment[0]) {
+          return false;
+        }
+      }
+    }
+    return true;
+  }
+
+  this.profileColor = function(profile) {
+    for (var env = 0; env < profile.existsInEnvironment.length; env++ ) {
+      if (profile.existsInEnvironment[env] != true) {
+        return "absence";
+      }
+    }
+    for (var key in profile.dictionary) {
+      if (!this.matchingValuesForKey(profile.dictionary[key])) {
+        return "difference";
+      }
+    }
+    return "match";
+  }
+
+  this.configFileColor = function(configFile) {
+    for (var env = 0; env < configFile.existsInEnvironment.length; env++ ) {
+      if (configFile.existsInEnvironment[env] != true) {
+        return "absence";
+      }
+    }
+    for (var o = 0; o < configFile.profiles.length; o++ ) {
+      var profile = configFile.profiles[o];
+      if (this.profileColor(profile) != "match") {
+        return "difference";
+      }
+    }
+    for (var key in configFile.dictionary) {
+      if (!this.matchingValuesForKey(configFile.dictionary[key])) {
+        return "difference";
+      }
+    }
+    return "match";
+  }
+
+  this.valueColor = function(key) {
+    if (key.existsInEnvironment.length === 0) {
+      return "matching";
+    } else {
+      for (var i = 0; i < key.valueInEnvironment.length; i++ ) {
+        if (!key.existsInEnvironment[i]) {
+          return "absence"
+        } else if (key.valueInEnvironment[i] !== key.valueInEnvironment[0]) {
+          return "difference";
+        }
+      }
+    }
+    return "matching";
   }
   
 }]);
@@ -194,6 +273,19 @@ myApp.controller('ConfigAuditController', ['$scope', '$log', 'ServerDataService'
   this.environments = [];
   this.loading = false;
   self = this;
+
+  this.getConfigFilesFromJson = function(jsonFile, index) {
+    self.createComparisonFileList = [];
+    self.errorMessages[index] = '';
+    ServerDataService.getData(jsonFile).then(function(response) {
+      self.files[index] = response.data;
+      self.getComparisonObject();
+    }, function(errResponse) {
+      $log.error('error getting data: ' + JSON.stringify(errResponse));
+      self.errorMessage = errResponse.data;
+      self.getComparisonObject();
+    });
+  };
 
   this.uploadFiles = function() {
     var fileList = $scope.files;
@@ -220,19 +312,6 @@ myApp.controller('ConfigAuditController', ['$scope', '$log', 'ServerDataService'
     return (arrayElement.length > 0)
   };
 
-  this.matchingValuesForKey = function(keyValues) {
-    if (keyValues.existsInEnvironment.length == 0) {
-      return true;
-    } else {
-      for (var i = 0; i < keyValues.valueInEnvironment.length; i++ ) {
-        if ((!keyValues.existsInEnvironment[i]) || keyValues.valueInEnvironment[i] != keyValues.valueInEnvironment[0]) {
-          return false;
-        }
-      }
-    }
-    return true;
-  }
-
   this.environmentCount = function() {
     return this.environments.length;
   }
@@ -245,36 +324,6 @@ myApp.controller('ConfigAuditController', ['$scope', '$log', 'ServerDataService'
     }
   }
 
-  this.overrideLevelColor = function(overrideLevel) {
-    for (var env = 0; env < overrideLevel.existsInEnvironment.length; env++ ) {
-      if (overrideLevel.existsInEnvironment[env] != true) {
-        return "absence";
-      }
-    }
-    for (var k = 0; k < overrideLevel.keyValuePairs.length; k++ ) {
-      var key = overrideLevel.keyValuePairs[k];
-      if (!this.matchingValuesForKey(key)) {
-        return "difference";
-      }
-    }
-    return "match";
-  }
-
-  this.configFileColor = function(configFile) {
-    for (var env = 0; env < configFile.existsInEnvironment.length; env++ ) {
-      if (configFile.existsInEnvironment[env] != true) {
-        return "absence";
-      }
-    }
-    for (var o = 0; o < configFile.overrideLevels.length; o++ ) {
-      var overrideLevel = configFile.overrideLevels[o];
-      if (this.overrideLevelColor(overrideLevel) != "match") {
-        return "difference";
-      }
-    }
-    return "match";
-  }
-
   this.openOrClosed = function(configLevel) {
     if (configLevel.show) {
       return "open"
@@ -283,20 +332,9 @@ myApp.controller('ConfigAuditController', ['$scope', '$log', 'ServerDataService'
     }
   }
 
-  this.valueColor = function(keyValue) {
-    if (keyValue.existsInEnvironment.length == 0) {
-      return "matching";
-    } else {
-      for (var i = 0; i < keyValue.valueInEnvironment.length; i++ ) {
-        if (!keyValue.existsInEnvironment[i]) {
-          return "absence"
-        } else if (keyValue.valueInEnvironment[i] != keyValue.valueInEnvironment[0]) {
-          return "difference";
-        }
-      }
-    }
-    return "matching";
-  }
+  this.keysInDictionary = function(dictionary) {
+    return Object.keys(dictionary)
+  };
 
 }]);
 
