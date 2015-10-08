@@ -44,6 +44,7 @@ myApp.service('ComparisonService', ['$q', function($q) {
       for (var e = 0; e < environments.length; e++ ) {
         comparisonService.addFilesToEnvironment(environments[e].config_files, fileList, e, environments.length);
       }
+      comparisonService.color_in_file_list(fileList);
       resolve(fileList);
     })
   }
@@ -180,6 +181,87 @@ myApp.service('ComparisonService', ['$q', function($q) {
     }
     return -1;
   }
+
+  this.color_in_file_list = function(file_list) {
+    for (var f in file_list) {
+      file = file_list[f];
+      file.color = this.configFileColor(file);
+      for (var k in file.dictionary) {
+        key = file.dictionary[k];
+        key.color = this.valueColor(key)
+      }
+      for (var p in file.profiles) {
+        profile = file.profiles[p]
+        profile.color = this.profileColor(profile)
+        for (var q in profile.dictionary) {
+          key = profile.dictionary[q]
+          key.color = this.valueColor(key)
+        }
+      }
+    }
+  }
+
+  this.matchingValuesForKey = function(key) {
+    if (key.existsInEnvironment.length == 0) {
+      return true;
+    } else {
+      for (var i = 0; i < key.valueInEnvironment.length; i++ ) {
+        if ((!key.existsInEnvironment[i]) || key.valueInEnvironment[i] != key.valueInEnvironment[0]) {
+          return false;
+        }
+      }
+    }
+    return true;
+  }
+
+  this.profileColor = function(profile) {
+    for (var env = 0; env < profile.existsInEnvironment.length; env++ ) {
+      if (profile.existsInEnvironment[env] != true) {
+        return "absence";
+      }
+    }
+    for (var key in profile.dictionary) {
+      if (!this.matchingValuesForKey(profile.dictionary[key])) {
+        return "difference";
+      }
+    }
+    return "match";
+  }
+
+  this.configFileColor = function(configFile) {
+    for (var env = 0; env < configFile.existsInEnvironment.length; env++ ) {
+      if (configFile.existsInEnvironment[env] != true) {
+        return "absence";
+      }
+    }
+    for (var o = 0; o < configFile.profiles.length; o++ ) {
+      var profile = configFile.profiles[o];
+      if (this.profileColor(profile) != "match") {
+        return "difference";
+      }
+    }
+    for (var key in configFile.dictionary) {
+      if (!this.matchingValuesForKey(configFile.dictionary[key])) {
+        return "difference";
+      }
+    }
+    return "match";
+  }
+
+  this.valueColor = function(key) {
+    if (key.existsInEnvironment.length === 0) {
+      return "matching";
+    } else {
+      for (var i = 0; i < key.valueInEnvironment.length; i++ ) {
+        if (!key.existsInEnvironment[i]) {
+          return "absence"
+        } else if (key.valueInEnvironment[i] !== key.valueInEnvironment[0]) {
+          return "difference";
+        }
+      }
+    }
+    return "matching";
+  }
   
 }]);
   
@@ -230,19 +312,6 @@ myApp.controller('ConfigAuditController', ['$scope', '$log', 'ServerDataService'
     return (arrayElement.length > 0)
   };
 
-  this.matchingValuesForKey = function(key) {
-    if (key.existsInEnvironment.length == 0) {
-      return true;
-    } else {
-      for (var i = 0; i < key.valueInEnvironment.length; i++ ) {
-        if ((!key.existsInEnvironment[i]) || key.valueInEnvironment[i] != key.valueInEnvironment[0]) {
-          return false;
-        }
-      }
-    }
-    return true;
-  }
-
   this.environmentCount = function() {
     return this.environments.length;
   }
@@ -255,74 +324,12 @@ myApp.controller('ConfigAuditController', ['$scope', '$log', 'ServerDataService'
     }
   }
 
-  this.profileColor = function(profile) {
-    for (var env = 0; env < profile.existsInEnvironment.length; env++ ) {
-      if (profile.existsInEnvironment[env] != true) {
-        return "absence";
-      }
-    }
-    for (var key in profile.dictionary) {
-      if (!this.matchingValuesForKey(profile.dictionary[key])) {
-        return "difference";
-      }
-    }
-    return "match";
-  }
-
-  this.configFileColor = function(configFile) {
-    for (var env = 0; env < configFile.existsInEnvironment.length; env++ ) {
-      if (configFile.existsInEnvironment[env] != true) {
-        return "absence";
-      }
-    }
-    for (var o = 0; o < configFile.profiles.length; o++ ) {
-      var profile = configFile.profiles[o];
-      if (this.profileColor(profile) != "match") {
-        return "difference";
-      }
-    }
-    for (var key in configFile.dictionary) {
-      if (!this.matchingValuesForKey(configFile.dictionary[key])) {
-        return "difference";
-      }
-    }
-    return "match";
-  }
-
   this.openOrClosed = function(configLevel) {
     if (configLevel.show) {
       return "open"
     } else {
       return "closed"
     }
-  }
-
-  this.valueColor = function(key) {
-    if (key.existsInEnvironment.length === 0) {
-      return "matching";
-    } else {
-      for (var i = 0; i < key.valueInEnvironment.length; i++ ) {
-        if (!key.existsInEnvironment[i]) {
-          return "absence"
-        } else if (key.valueInEnvironment[i] !== key.valueInEnvironment[0]) {
-          return "difference";
-        }
-      }
-    }
-    return "matching";
-  }
-
-  this.dictionaryColor = function(dictionary) {
-    if (this.keysInDictionary === 0) {
-      return "matching";
-    } else {
-      for (var key in dictionary) {
-        if (this.valueColor(key) !== "matching") {
-          return "difference"
-        }
-      }
-    }
-    return "matching"
   }
 
   this.keysInDictionary = function(dictionary) {

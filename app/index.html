@@ -25,20 +25,20 @@
     <span>{{configViewer.errorMessage}}</span>
     <ul>
       <li ng-repeat="configFile in configViewer.comparisonObject.configFiles | orderBy:['file']">
-      <div class="configFile configFile-{{configFile.highlight}} config-{{configViewer.configFileColor(configFile)}}-{{configViewer.openOrClosed(configFile)}}">
+      <div class="configFile configFile-{{configFile.highlight}} config-{{configFile.color}}-{{configViewer.openOrClosed(configFile)}}">
         <div class="configFileHeader noSelect" ng-mouseover="configFile.highlight=true" ng-mouseleave="configFile.highlight=false" ng-click="configFile.show = !configFile.show">{{configFile.file}}</div>
           <div class="tableContainer" ng-hide="!configFile.show" ng-show="configFile.show"><table>
             <tr ng-class="{ evenRow: !($index % 2), oddRow: !!($index % 2) }" ng-repeat="key in configViewer.keysInDictionary(configFile.dictionary) | orderBy:'key'">
-              <td class="key value-{{configViewer.valueColor(configFile.dictionary[key])}}">{{key}}</td>
+              <td class="key value-{{configFile.dictionary[key].color}}">{{key}}</td>
               <td ng-repeat="value in configFile.dictionary[key].valueInEnvironment track by $index">{{value}}</td>
             </tr>
           </table></div>
         <ul ng-show="configFile.show">
-          <li class="profile profile-{{profile.highlight}} config-{{configViewer.profileColor(profile)}}-{{configViewer.openOrClosed(profile)}}" ng-repeat="profile in configFile.profiles">
+          <li class="profile profile-{{profile.highlight}} config-{{profile.color}}-{{configViewer.openOrClosed(profile)}}" ng-repeat="profile in configFile.profiles">
             <div class="profileHeader noSelect" ng-mouseover="profile.highlight=true" ng-mouseleave="profile.highlight=false" ng-click="profile.show = !profile.show">{{profile.profile}}</div ng-mouseover="profile.highlight">
               <div class="tableContainer" ng-hide="!profile.show" ng-show="profile.show"><table>
                 <tr ng-class="{ evenRow: !($index % 2), oddRow: !!($index % 2) }" ng-repeat="key in configViewer.keysInDictionary(profile.dictionary) | orderBy:'key'">
-                  <td class="key value-{{configViewer.valueColor(profile.dictionary[key])}}">{{key}}</td>
+                  <td class="key value-{{profile.dictionary[key].color}}">{{key}}</td>
                   <td ng-repeat="value in profile.dictionary[key].valueInEnvironment track by $index">{{value}}</td>
                 </tr>
               </table></div>
