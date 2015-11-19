@@ -21,32 +21,72 @@
     <h1>Configuration audit</h1>
   </header>
   <article ng-controller="ConfigAuditController as configViewer">
-    <input type="file" multiple file-model="files" accept=".json" /><span ng-hide="!configViewer.loading">Loading...</span>
-    <span>{{configViewer.errorMessage}}</span>
-    <ul>
-      <li ng-repeat="configFile in configViewer.comparisonObject.configFiles | orderBy:['file']">
-      <div class="configFile configFile-{{configFile.highlight}} config-{{configFile.color}}-{{configViewer.openOrClosed(configFile)}}">
-        <div class="configFileHeader noSelect" ng-mouseover="configFile.highlight=true" ng-mouseleave="configFile.highlight=false" ng-click="configFile.show = !configFile.show">{{configFile.file}}</div>
-          <div class="tableContainer" ng-hide="!configFile.show" ng-show="configFile.show"><table>
-            <tr ng-class="{ evenRow: !($index % 2), oddRow: !!($index % 2) }" ng-repeat="key in configViewer.keysInDictionary(configFile.dictionary) | orderBy:'key'">
-              <td class="key value-{{configFile.dictionary[key].color}}">{{key}}</td>
-              <td ng-repeat="value in configFile.dictionary[key].valueInEnvironment track by $index">{{value}}</td>
+    <input type="file" multiple file-model="files" accept=".json"/>
+    <label>Filter: </label><input ng-model="filterText"/>
+    <p>
+    <div data-tip="Used in environments: SGSSUAT, SGSSPreProd" ng-show="!configViewer.loaded && !configViewer.loading">Select one or more files to view or compare.</div>
+    <div ng-show="configViewer.loading">Loading...</div>
+    <div ng-show="configViewer.error">{{configViewer.errorMessage}}</div>
+    <div ng-show="configViewer.loaded">
+      <div class="configFile configFile-{{configViewer.comparisonObject.overview.highlight}} config-neutral-{{configViewer.comparisonObject.overview.show ? 'open' : 'closed'}}">
+        <div class="configFileHeader noSelect" ng-mouseover="configViewer.comparisonObject.overview.highlight=true" ng-mouseleave="configViewer.comparisonObject.overview.highlight=false" ng-click="configViewer.comparisonObject.overview.show = !configViewer.comparisonObject.overview.show">Overview</div>
+        <div class="tableContainer" ng-hide="!configViewer.comparisonObject.overview.show" ng-show="configViewer.comparisonObject.overview.show">
+          <table>
+            <tr ng-class="{ evenRow: !($index % 2), oddRow: !!($index % 2) }" ng-repeat="property in filteredKeys = (configViewer.comparisonObject.overview.values | filter:UNKNOWN)">
+              <td class="key value-{{profile.dictionary[key].color}}">{{property.key}}</td>
+              <td ng-repeat="value in property.valueInEnvironment track by $index">{{value}}</td>
             </tr>
-          </table></div>
-        <ul ng-show="configFile.show">
-          <li class="profile profile-{{profile.highlight}} config-{{profile.color}}-{{configViewer.openOrClosed(profile)}}" ng-repeat="profile in configFile.profiles">
-            <div class="profileHeader noSelect" ng-mouseover="profile.highlight=true" ng-mouseleave="profile.highlight=false" ng-click="profile.show = !profile.show">{{profile.profile}}</div ng-mouseover="profile.highlight">
-              <div class="tableContainer" ng-hide="!profile.show" ng-show="profile.show"><table>
-                <tr ng-class="{ evenRow: !($index % 2), oddRow: !!($index % 2) }" ng-repeat="key in configViewer.keysInDictionary(profile.dictionary) | orderBy:'key'">
-                  <td class="key value-{{profile.dictionary[key].color}}">{{key}}</td>
-                  <td ng-repeat="value in profile.dictionary[key].valueInEnvironment track by $index">{{value}}</td>
-                </tr>
-              </table></div>
-          </li>
-        </ul>
+            <tr ng-hide="filteredKeys.length" class="evenRow"><td class="key value-none">No entries<td></tr>
+          </table>
         </div>
-      </li>
-    </ul>
+      </div>
+      <div class="title">
+        i Tables
+      </div>
+      <ul>
+        <li ng-repeat="table in configViewer.comparisonObject.databaseTables | filter: filterText">
+        <div class="configFile configFile-{{table.highlight}} config-{{table.color}}-{{configViewer.openOrClosed(table)}}">
+          <div class="configFileHeader noSelect" ng-mouseover="table.highlight=true" ng-mouseleave="table.highlight=false" ng-click="table.show = table.sizesMatch && !table.show">{{table.title}}<span  ng-hide="table.sizesMatch" ng-show="!table.sizesMatch" class="faint"> - Table structure differs between environments. Data can't be compared.</span></div>
+            <div class="tableContainer" ng-hide="!table.show || !table.sizesMatch" ng-show="table.show && table.sizesMatch"><table>
+              <tr class="tableHeader">
+                <td ng-repeat="header in table.headers track by $index">{{header}}</td>
+              </tr>
+              <tr ng-class="{evenRow: !($index % 2), oddRow: !!($index % 2) }" ng-repeat="row in table.rows | tableContentFilter:filterText:table" >
+                <td class="row-{{row.color}}" ng-repeat="column in row.data track by $index">{{column}}</td>
+              </tr>
+            </table></div>
+        </div>
+      </ul>
+      <div class="title">
+        Configuration files
+      </div>
+      <ul>
+        <li ng-repeat="configFile in configViewer.comparisonObject.configFiles | orderBy:['file'] | filter: filterText">
+        <div class="configFile configFile-{{configFile.highlight}} config-{{configFile.color}}-{{configViewer.openOrClosed(configFile)}}">
+          <div class="configFileHeader noSelect" ng-mouseover="configFile.highlight=true" ng-mouseleave="configFile.highlight=false" ng-click="configFile.show = !configFile.show">{{configFile.file}}</div>
+            <div class="tableContainer" ng-hide="!configFile.show" ng-show="configFile.show"><table>
+              <tr ng-class="{ evenRow: !($index % 2), oddRow: !!($index % 2) }" ng-repeat="key in configFile.keys | dictionaryContentFilter:filterText:configFile">
+                <td class="key value-{{configFile.dictionary[key].color}}">{{key}}</td>
+                <td ng-repeat="value in configFile.dictionary[key].valueInEnvironment track by $index">{{value}}</td>
+              </tr>
+            </table></div>
+          <ul ng-show="configFile.show">
+            <li class="profile profile-{{profile.highlight}} config-{{profile.color}}-{{configViewer.openOrClosed(profile)}}" ng-repeat="profile in configFile.profiles | profileFilter:filterText:configFile">
+              <div class="profileHeader noSelect" ng-mouseover="profile.highlight=true" ng-mouseleave="profile.highlight=false" ng-click="profile.show = !profile.show">{{profile.profile}}</div ng-mouseover="profile.highlight">
+                <div class="tableContainer" ng-hide="!profile.show" ng-show="profile.show"><table>
+                  <tr ng-class="{ evenRow: !($index % 2), oddRow: !!($index % 2) }" ng-repeat="key in profile.keys | dictionaryContentFilter:filterText:configFile:profile">
+                    <td class="key value-{{profile.dictionary[key].color}}">{{key}}</td>
+                    <td ng-repeat="value in profile.dictionary[key].valueInEnvironment track by $index">{{value}}</td>
+                  </tr>
+                  <tr ng-hide="filteredKeys.length" class="evenRow"><td class="key value-none">No entries<td></tr>
+                </table>
+              </div>
+            </li>
+          </ul>
+          </div>
+        </li>
+      </ul>
+    </div>
   </article>
 </section>
   

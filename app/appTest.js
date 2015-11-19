@@ -1,3 +1,34 @@
+var customMatchers = {
+  toMatchObject: function(util, customEqualityTesters) {
+    return {
+      compare: function(actual, expected) {
+        var result = {};
+        result.pass = Object.objects_equal(actual, expected);
+        if (result.pass) {
+          result.message = "object:\n\n" + JSON.stringify(actual, null, 2) + "\n\nmatched object:\n\n" + JSON.stringify(expected, null, 2);
+        } else {
+          result.message = "object:\n\n" + JSON.stringify(actual, null, 2) + "\n\ndid not match object:\n\n" + JSON.stringify(expected, null, 2);
+        }
+        return result;
+      }
+    }
+  },
+  toContainObject: function(util, customEqualityTesters) {
+    return {
+      compare: function(actual, expected) {
+        var result = {};
+        result.pass = Object.object_in_list(expected, actual);
+        if (result.pass) {
+          result.message = "object:\n\n" + JSON.stringify(expected, null, 2) + "\n\nwas in list:\n\n" + JSON.stringify(actual, null, 2);
+        } else {
+          result.message = "object:\n\n" + JSON.stringify(expected, null, 2) + "\n\nwas not in list:\n\n" + JSON.stringify(actual, null, 2);
+        }
+        return result;
+      }
+    }
+  }
+}
+
 describe('ComparisonService', function() {
 
   beforeEach(module('configAuditViewer'));
@@ -13,6 +44,8 @@ describe('ComparisonService', function() {
   var file8;
   var env1;
   var env2;
+  var table1;
+  var table2;
 
   beforeEach(inject(function(_ComparisonService_) {
       ComparisonService = _ComparisonService_;
@@ -29,6 +62,10 @@ describe('ComparisonService', function() {
     file8 = {file: "/Clients/Everyth6.ini"};
     env1 = {configFiles: [file1, file2, file3, file5]};
     env2 = {configFiles: [file3, file5, file6]};
+    table1 = {title: "THING", headers:["Shape","Colour"], rows:[["Square","Red"], ["Circle","Blue"]]};
+    table2 = {title: "THING", headers:["Shape","Colour"], rows:[["Square","Red"], ["Triangle","Blue"]]};
+    table3 = {title: "TRUCK", headers:["Wheels","Weight"], rows:[[18,10], [8,4]]};
+    table4 = {title: "TRUCK", headers:["Wheels","Weight","Capacity"], rows:[[18,10,160], [8,4,60]]};
   });
 
   describe('filesMatch', function() {
@@ -93,7 +130,103 @@ describe('ComparisonService', function() {
     });
   });
 
-  // Object.getOwnPropertyNames(obj) will get the keys out. Can then do obj[property] to get the value.
+  describe('isTable', function() {
+    it('should be true for tables', function() {
+      expect(ComparisonService.isTable(table1)).toBe(true);
+      expect(ComparisonService.isTable(table2)).toBe(true);
+    })
+    it('should be false for files', function() {
+      expect(ComparisonService.isTable(file1)).toBe(false);
+      expect(ComparisonService.isTable(file2)).toBe(false);
+    })
+    it('should be false for an undefined thing', function() {
+      var notAThing;
+      expect(ComparisonService.isTable(notAThing)).toBe(false);
+    })
+    it('should be false for an array', function() {
+      var array = [];
+      expect(ComparisonService.isTable(array)).toBe(false);
+    })
+  })
+
+  describe('tablesMatch', function() {
+    beforeEach(function() {
+      ComparisonService.testFunction = ComparisonService.tablesMatch
+    });
+    it('should be true when the table titles and headers are the same', function() {
+      expect(ComparisonService.testFunction(table1, table2)).toBe(true);
+      expect(ComparisonService.testFunction(table4, table4)).toBe(true);
+    });
+    it('should be false when the titles don\'t match', function() {
+      expect(ComparisonService.testFunction(table2, table3)).toBe(false);
+    });
+    it('should be false when the headers don\'t match', function() {
+      expect(ComparisonService.testFunction(table1, table4)).toBe(false);
+      expect(ComparisonService.testFunction(table3, table4)).toBe(false);
+    });
+  })
+
+  describe('titlesMatch', function() {
+    beforeEach(function() {
+      ComparisonService.testFunction = ComparisonService.titlesMatch
+    });
+    it('should be true when the table titles are the same', function() {
+      expect(ComparisonService.testFunction(table1, table2)).toBe(true);
+      expect(ComparisonService.testFunction(table4, table4)).toBe(true);
+    });
+    it('should be false when the titles don\'t match', function() {
+      expect(ComparisonService.testFunction(table2, table3)).toBe(false);
+      
+    });
+  })
+
+  describe('headersMatch', function() {
+    beforeEach(function() {
+      ComparisonService.testFunction = ComparisonService.headersMatch
+    });
+    it('should be true when the table headers are the same', function() {
+      expect(ComparisonService.testFunction(table1, table2)).toBe(true);
+      expect(ComparisonService.testFunction(table4, table4)).toBe(true);
+    });
+    it('should be false when the headers don\'t match', function() {
+      expect(ComparisonService.testFunction(table1, table4)).toBe(false);
+      expect(ComparisonService.testFunction(table3, table4)).toBe(false);
+    });
+  })
+
+  describe('rowsMatch', function() {
+
+    var row1;
+    var row2;
+    var row3;
+    var row4;
+    var row5;
+
+    beforeEach(function() {
+      row1 = ['red', 5]
+      row2 = ['red', 5]
+      row3 = ['blue', 5]
+      row4 = ['red', 6]
+      row5 = ['red', 5, 'square']
+
+      ComparisonService.testFunction = ComparisonService.rowsMatch
+    });
+    it('should be true when every column in both rows match', function() {
+      expect(ComparisonService.testFunction(row1, row1)).toBe(true);
+      expect(ComparisonService.testFunction(row1, row2)).toBe(true);
+    })
+    it('should be false when not every column matches', function() {
+      expect(ComparisonService.testFunction(row1, row3)).toBe(false);
+      expect(ComparisonService.testFunction(row1, row4)).toBe(false);
+    })
+    it('should be false when the row lengths differ, even if other fields match', function() {
+      expect(ComparisonService.testFunction(row1, row5)).toBe(false);
+      expect(ComparisonService.testFunction(row2, row5)).toBe(false);
+      expect(ComparisonService.testFunction(row3, row5)).toBe(false);
+      expect(ComparisonService.testFunction(row4, row5)).toBe(false);
+    })
+  })
+
   describe('keysMatch', function() {
     it('should be true when the keys are the same', function() {
       var key1 = 'Colour';
@@ -112,6 +245,18 @@ describe('ComparisonService', function() {
       expect(ComparisonService.listContainsFile(configFiles, file1)).toBe(true);
       expect(ComparisonService.listContainsFile(configFiles, file2)).toBe(false);
       expect(ComparisonService.listContainsFile(configFiles, file3withextrastuff)).toBe(true);
+    });
+  });
+
+  describe('listContainsTable', function () {
+    it('should know whether a table is in a list', function() {
+      var tables = [table1];
+      var table1withextrastuff = table1;
+      table1withextrastuff['extraStuff'] = "Yes";
+      expect(ComparisonService.listContainsTable(tables, table1)).toBe(true);
+      expect(ComparisonService.listContainsTable(tables, table2)).toBe(true);
+      expect(ComparisonService.listContainsTable(tables, table1withextrastuff)).toBe(true);
+      expect(ComparisonService.listContainsTable(tables, table3)).toBe(false);
     });
   });
 
@@ -351,6 +496,152 @@ describe('ComparisonService', function() {
 
   });
 
+describe('addTableToEnvironment', function() {
+
+    var comparisonTables = [];
+    var tableA;
+    var tableComparisonA;
+    var tableA;
+    var tableComparisonA;
+
+    beforeEach(function() {
+      jasmine.addMatchers(customMatchers);
+      comparisonTables = [];
+      tableA = {
+                    title: 'block',
+                    headers: ['size', 'colour', 'shape'],
+                    rows: [
+                      ['big', 'red', 'circle'],
+                      ['huge', 'green', 'rectangle'],
+                      ['little', 'blue', 'cross']
+                    ]
+                  };
+      tableComparisonA = {
+                    title: 'block',
+                    headers: ['size', 'colour', 'shape'],
+                    rows: [
+                      {data: ['big', 'red', 'circle'], existsInEnvironment: [true, false]},
+                      {data: ['huge', 'green', 'rectangle'], existsInEnvironment: [true, false]},
+                      {data: ['little', 'blue', 'cross'], existsInEnvironment: [true, false]}
+                    ],
+                    existsInEnvironment: [true, false],
+                    highlight: false,
+                    show: false,
+                    sizesMatch: true
+                  };    
+      tableB = {
+                    title: 'vehicle',
+                    headers: ['name', 'wheels', 'sound'],
+                    rows: [
+                      ['car', 4, 'honk'],
+                      ['helicopter', 0, 'whirr'],
+                      ['truck', '18', 'HOOONK']
+                    ]
+                  };
+      tableComparisonB = {
+                    title: 'vehicle',
+                    headers: ['name', 'wheels', 'sound'],
+                    rows: [
+                      {data: ['car', 4, 'honk'], existsInEnvironment: []},
+                      {data: ['helicopter', 0, 'whirr'], existsInEnvironment: []},
+                      {data: ['truck', '18', 'HOOONK'], existsInEnvironment: []}
+                    ],
+                    existsInEnvironment: [],
+                    highlight: false,
+                    show: false,
+                  };    
+    });
+
+    describe('rowsInEnvironment', function() {
+      it('should return the rows formatted for their existence in environments', function() {
+        var formattedRows = ComparisonService.rowsInEnvironment(tableA.rows, 0, 2);
+        for (var i = 0; i < tableComparisonA.rows.length; i++) {
+          for (var j = 0; j < tableComparisonA.rows[i].data.length; j++) {
+            expect(formattedRows[i].data[j] === tableComparisonA.rows[i].data[j]).toBe(true);
+            expect(formattedRows[i].existsInEnvironment[j] === tableComparisonA.rows[i].existsInEnvironment[j]).toBe(true);
+          }
+        }
+      })
+    });
+
+    describe('interleaveRows', function() {
+      beforeEach(function() {
+        e1Rows = [
+          {data: ['aaa', 0, 'red'], existsInEnvironment: [true, false]},
+          {data: ['aaa', 2, 'blue'], existsInEnvironment: [true, false]},
+          {data: ['aaa', 3, 'green'], existsInEnvironment: [true, false]},
+          {data: ['aba', 0, 'yellow'], existsInEnvironment: [true, false]},
+          {data: ['aba', 1, 'black'], existsInEnvironment: [true, false]}
+        ];
+        e2RowsA = [
+          ['aaa', 0, 'red']
+        ];
+        e1RowsPlus2RowsA = [
+          {data: ['aaa', 0, 'red'], existsInEnvironment: [true, true]},
+          {data: ['aaa', 2, 'blue'], existsInEnvironment: [true, false]},
+          {data: ['aaa', 3, 'green'], existsInEnvironment: [true, false]},
+          {data: ['aba', 0, 'yellow'], existsInEnvironment: [true, false]},
+          {data: ['aba', 1, 'black'], existsInEnvironment: [true, false]}
+        ];
+        e2RowsB = [
+          ['aab', 1, 'white']
+        ];
+        e1RowsPlus2RowsB = [
+          {data: ['aaa', 0, 'red'], existsInEnvironment: [true, false]},
+          {data: ['aaa', 2, 'blue'], existsInEnvironment: [true, false]},
+          {data: ['aaa', 3, 'green'], existsInEnvironment: [true, false]},
+          {data: ['aab', 1, 'white'], existsInEnvironment: [false, true]},
+          {data: ['aba', 0, 'yellow'], existsInEnvironment: [true, false]},
+          {data: ['aba', 1, 'black'], existsInEnvironment: [true, false]}
+        ]
+      })
+      it('should add environment information about each row found', function() {
+        expect(ComparisonService.interleaveRows(e1Rows, e2RowsA, 1, 2)).toMatchObject(e1RowsPlus2RowsA);
+      });
+      it('should add new rows in the correct position and with the correct env existence', function() {
+        expect(ComparisonService.interleaveRows(e1Rows, e2RowsB, 1, 2)).toMatchObject(e1RowsPlus2RowsB);
+      })
+    })
+
+    it('should add a table to an empty environment', function() {
+      ComparisonService.addTableToEnvironment(tableA, comparisonTables, 0, 2);
+      expect(comparisonTables).toContainObject(tableComparisonA);
+      expect(comparisonTables).not.toContainObject(tableComparisonB);
+    });
+
+    it('should not add a table to the table list twice', function() {
+      ComparisonService.addTableToEnvironment(tableA, comparisonTables, 0, 2);
+      ComparisonService.addTableToEnvironment(tableA, comparisonTables, 1, 2);
+      expect(comparisonTables.length).toBe(1);
+    });
+
+    it('should identify that an environment contains a table', function() {
+      ComparisonService.addTableToEnvironment(tableA, comparisonTables, 0, 2);
+      expect(comparisonTables[0].existsInEnvironment[0]).toBe(true);
+    });
+
+    it('should identify which environments contain a table', function() {
+      ComparisonService.addTableToEnvironment(tableA, comparisonTables, 0, 2);
+      ComparisonService.addTableToEnvironment(tableA, comparisonTables, 1, 2);
+      expect(comparisonTables[0].existsInEnvironment[0]).toBe(true);
+      expect(comparisonTables[0].existsInEnvironment[1]).toBe(true);
+    });
+
+    it('should not assume an environment contains a table that wasn\'t added', function() {
+      ComparisonService.addTableToEnvironment(tableA, comparisonTables, 0, 2);
+      ComparisonService.addTableToEnvironment(tableB, comparisonTables, 1, 2);
+      expect(comparisonTables[0].existsInEnvironment[1]).not.toBe(true);
+      expect(comparisonTables[1].existsInEnvironment[0]).not.toBe(true);
+    });
+
+    it('should add a list of tables to an environment', function() {
+      var tableList = [tableA, tableB];
+      ComparisonService.addTablesToEnvironment(tableList, comparisonTables, 0, 1);
+      expect(comparisonTables.length).toBe(2);
+    });
+
+  });
+
   describe('findFileIndexInList', function() {
     var fileList = [];
 
@@ -382,7 +673,22 @@ describe('ComparisonService', function() {
 
 describe('ComparisonService\'s createComparisonFileList promise', function() {
 
-  var customMatchers = {
+  var customMatchersForFile;
+  var ComparisonService;
+  var environments = [];
+  var comparisonFileList = [];
+  var file1;
+  var file2;
+  var file3;
+  var file4;
+  var table1;
+  var table2;
+  var table3;
+  var table4;
+  var result = [];
+  var promise;
+
+  var customMatchersForFile = {
     toMatchFile: function(util, customEqualityTesters) {
       return {
         compare: function(actual, expected) {
@@ -408,19 +714,9 @@ describe('ComparisonService\'s createComparisonFileList promise', function() {
     }
   }
 
-  var ComparisonService;
-  var environments = [];
-  var comparisonFileList = [];
-  var file1;
-  var file2;
-  var file3;
-  var file4;
-  var result = [];
-  var promise;
-
-  beforeEach(module('configAuditViewer2'));
+  beforeEach(module('configAuditViewer'));
   beforeEach(function() {
-    jasmine.addMatchers(customMatchers);
+    jasmine.addMatchers(customMatchersForFile);
   })
 
   beforeEach(inject(function(_ComparisonService_) {
@@ -429,7 +725,9 @@ describe('ComparisonService\'s createComparisonFileList promise', function() {
       file2 = {file: "/def.ini", profiles: []};
       file3 = {file: "/ghi.ini", profiles: []};
       file4 = {file: "/abc.ini", profiles: [{profile: "[Default]", dictionary: {colour: "Blue"}}]};
-      environments = [[file1, file2], [file2, file3], [file4]];
+      environments = [{"config_files":[file1, file2]},
+          {"config_files": [file2, file3]},
+          {"config_files": [file4]}];
   }));
 
   beforeEach(function(done) {
@@ -451,13 +749,13 @@ describe('ComparisonService\'s createComparisonFileList promise', function() {
     expect(result[0].existsInEnvironment[0]).toBe(true);
     expect(result[0].existsInEnvironment[1]).toBe(false);
     expect(result[0].existsInEnvironment[2]).toBe(true);
-  })
+  });
 
   it('should fill gaps in existence of profiles', function() {
     expect(result[0].profiles[0].existsInEnvironment[0]).toBe(true);
     expect(result[0].profiles[0].existsInEnvironment[2]).toBe(true);
     expect(result[0].profiles[0].existsInEnvironment[1]).toBe(false);
-  })
+  });
 
   it('should fill gaps in existence and value of dictionary elements', function() {
     expect(result[0].profiles[0].dictionary['colour'].existsInEnvironment[0]).toBe(true);
@@ -466,6 +764,47 @@ describe('ComparisonService\'s createComparisonFileList promise', function() {
     expect(result[0].profiles[0].dictionary['colour'].valueInEnvironment[2]).toBe('Blue');
     expect(result[0].profiles[0].dictionary['colour'].existsInEnvironment[1]).toBe(false);
     expect(result[0].profiles[0].dictionary['colour'].valueInEnvironment[1]).toBe('');
+  });
+});
+
+xdescribe('ComparisonService\'s createComparisonTableList promise', function() {
+
+  var ComparisonService;
+  var environments = [];
+  var comparisonTableList = [];
+  var table1;
+  var table2;
+  var table3;
+  var table4;
+  var result = [];
+  var promise;
+
+  beforeEach(module('configAuditViewer'));
+  beforeEach(function() {
+    jasmine.addMatchers(customMatchers);
   })
 
-})
+  beforeEach(inject(function(_ComparisonService_) {
+      ComparisonService = _ComparisonService_;
+      table1 = {title: "THING", headers:["Shape","Colour"], rows:[["Square","Red"], ["Circle","Blue"]]};
+      table2 = {title: "THING", headers:["Shape","Colour"], rows:[["Square","Red"], ["Triangle","Blue"]]};
+      environments = [{database_tables:[table1]},
+          {database_tables:[table2]}];
+  }));
+
+  beforeEach(function(done) {
+    result = [];
+    promise = ComparisonService.createComparisonTableList(environments).then(function(response) {
+      result = response;
+      done();
+    }, function(error){
+      result = response;
+      done();
+    });
+  });
+
+  it('should do something', function() {
+
+  });
+
+});
