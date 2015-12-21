@@ -523,27 +523,6 @@ myApp.service('ComparisonService', ['$q', function($q) {
     return "matching";
   }
 
-  this.environmentAppearance = function(row) {
-    var count = 0;
-    var environmentList = '';
-    for (var e = 0; e < row.existsInEnvironment.length; e++) {
-      if (row.existsInEnvironment[e]) {
-        var p = findPropertyIndexInList('Environment', this.comparisonObject.overview.values)
-        if (count = 0) {
-          environmentList = this.comparisonObject.overview.values[p].valueInEnvironment[e];
-        } else {
-          environmentList += ', ' + this.comparisonObject.overview.values[p].valueInEnvironment[e];
-        }
-        count ++;
-      }
-    }
-    if (count > 1) {
-      return 'Found in environments: ' + environmentList
-    } else {
-      return 'Found in environment: ' + environmentList
-    }
-  }
-
   this.keysInDictionary = function(dictionary) {
     if (typeof dictionary !== 'undefined') {
       return Object.keys(dictionary)
@@ -624,6 +603,30 @@ myApp.controller('ConfigAuditController', ['$scope', '$log', 'ServerDataService'
 
   this.openOrClosed = function(configLevel) {
     return configLevel.show ? "open" : "closed";
+  }
+
+  this.environmentAppearance = function(row) {
+    if (this.comparisonObject.overview === undefined) {
+      return ''
+    }
+    var count = 0;
+    var environmentList = '';
+    for (var e = 0; e < row.existsInEnvironment.length; e++) {
+      if (row.existsInEnvironment[e]) {
+        var p = ComparisonService.findPropertyIndexInList('Environment', this.comparisonObject.overview.values)
+        if (count == 0) {
+          environmentList = this.comparisonObject.overview.values[p].valueInEnvironment[e];
+        } else {
+          environmentList += ', ' + this.comparisonObject.overview.values[p].valueInEnvironment[e];
+        }
+        count ++;
+      }
+    }
+    if (count > 1) {
+      return 'Found in environments: ' + environmentList
+    } else {
+      return 'Found in environment: ' + environmentList
+    }
   }
 
   $scope.filterText = ''

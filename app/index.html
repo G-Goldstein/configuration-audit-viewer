@@ -24,7 +24,7 @@
     <input type="file" multiple file-model="files" accept=".json"/>
     <label>Filter: </label><input ng-model="filterText"/>
     <p>
-    <div data-tip="Used in environments: SGSSUAT, SGSSPreProd" ng-show="!configViewer.loaded && !configViewer.loading">Select one or more files to view or compare.</div>
+    <div ng-show="!configViewer.loaded && !configViewer.loading">Select one or more files to view or compare.</div>
     <div ng-show="configViewer.loading">Loading...</div>
     <div ng-show="configViewer.error">{{configViewer.errorMessage}}</div>
     <div ng-show="configViewer.loaded">
@@ -52,7 +52,7 @@
                 <td ng-repeat="header in table.headers track by $index">{{header}}</td>
               </tr>
               <tr ng-class="{evenRow: !($index % 2), oddRow: !!($index % 2) }" ng-repeat="row in table.rows | tableContentFilter:filterText:table" >
-                <td class="row-{{row.color}}" ng-repeat="column in row.data track by $index">{{column}}</td>
+                <td data-tip="{{configViewer.environmentAppearance(row)}}" class="row-{{row.color}}" ng-repeat="column in row.data track by $index">{{column}}</td>
               </tr>
             </table></div>
         </div>

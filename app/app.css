@@ -1,6 +1,5 @@
 [data-tip] {
   position:relative;
-
 }
 [data-tip]:before {
   content:'';
@@ -22,7 +21,7 @@
   position:absolute;
   top:30px;
   left:35px;
-  z-index:8;
+  z-index:13;
   font-size:0;
   line-height:0;
   width:0;
@@ -37,7 +36,7 @@
   padding:5px 8px;
   background:#1a1a1a;
   color:#fff;
-  z-index:9;
+  z-index:12;
   font-size: 0.75em;
   height:18px;
   line-height:18px;
