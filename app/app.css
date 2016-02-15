@@ -122,14 +122,11 @@ ul {
     margin: 5px;
     font-weight: bold;
     box-shadow: 1px 1px #d0d0d0, inset 1px 1px 0 rgba(255, 255, 255, 0.3);
-}
-
-.configFile-true {
-    background-color: #dddddd;
-}
-
-.configFile-false {
     background-color: #e3e3e3;
+}
+
+.configFile:hover {
+    background-color: #dddddd;
 }
 
 .profileHeader {
@@ -145,14 +142,11 @@ ul {
     margin: 5px;
     font-weight: bold;
     box-shadow: 1px 1px #d0d0d0, inset 1px 1px 0 rgba(255, 255, 255, 0.3);
-}
-
-.profile-true {
-    background-color: #eeeeee;
-}
-
-.profile-false {
     background-color: #f3f3f3;
+}
+
+.profile:hover {
+    background-color: #eeeeee;
 }
 
 .config-neutral-closed {
