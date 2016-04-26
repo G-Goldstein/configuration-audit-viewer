@@ -1,6 +1,6 @@
 
-var myApp = angular.module('configAuditViewer', []);
-  
+var myApp = angular.module('configAuditViewer', ['monospaced.elastic']);
+
 myApp.service('ServerDataService', ['$http', function($http) {
   this.getData = function(jsonFile) {
      return $http.get(jsonFile);
@@ -330,10 +330,11 @@ myApp.service('ComparisonService', ['$q', function($q) {
     for (property in overview) {
       if (!this.listContainsProperty(combinedOverview, property)) {
         var propertyToAdd = {valueInEnvironment: []}
+        propertyToAdd.key = property;
+        propertyToAdd.comment = '';
         combinedOverview[property] = {valueInEnvironment:[]};
         for (var i = 0; i < environmentCount; i++) {
           propertyToAdd.valueInEnvironment[i] = '';
-          propertyToAdd.key = property;
         }
         combinedOverview.push(propertyToAdd);
       }
@@ -627,6 +628,22 @@ myApp.controller('ConfigAuditController', ['$scope', '$log', 'ServerDataService'
     } else {
       return 'Found in environment: ' + environmentList
     }
+  }
+
+  this.createPDF = function() {
+    var header = new Running_Element('images/figaro.jpg', 10, 20, 100, 37)
+    running_elements = [];
+    running_elements.push(header);
+    var pdf = new Pdf(running_elements);
+    pdf.header('Configuration Audit');
+    pdf.normal('This is the result of the configuration audit. It\'s a PDF, made using the PDF maker thing. It\'s starting to feel a bit better but I\'ve some work to do on getting sizes and gaps right.');
+    pdf.normal('It contains some text');
+    pdf.file_header('Central\\BM\\BackOffice.ini');
+    pdf.normal('To show off the config audit');
+    for (var a = 0; a < 50; a++) {
+      pdf.normal('This is a normal line of text')
+    }
+    pdf.save('Test.pdf');
   }
 
   $scope.filterText = ''
