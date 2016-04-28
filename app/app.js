@@ -631,18 +631,62 @@ myApp.controller('ConfigAuditController', ['$scope', '$log', 'ServerDataService'
   }
 
   this.createPDF = function() {
-    var header = new Running_Element('images/figaro.jpg', 10, 20, 100, 37)
     running_elements = [];
-    running_elements.push(header);
     var pdf = new Pdf(running_elements);
-    pdf.header('Configuration Audit');
-    pdf.normal('This is the result of the configuration audit. It\'s a PDF, made using the PDF maker thing. It\'s starting to feel a bit better but I\'ve some work to do on getting sizes and gaps right.');
-    pdf.normal('It contains some text');
-    pdf.file_header('Central\\BM\\BackOffice.ini');
-    pdf.normal('To show off the config audit');
-    for (var a = 0; a < 50; a++) {
-      pdf.normal('This is a normal line of text')
-    }
+    ele1 = new Text_Element('This is my new text element thing', 10, 1, 3);
+    ele2 = new Text_Element('This is another one, a bit bigger', 10, 4, 6);
+    hed = new Text_Element('This is the header', 16);
+    body = new Text_Element('This is some supporting text to explain the section', 10);
+    comment = new Text_Element('This is a long comment. This is a long comment. This is a long comment. This is a long comment. This is a long comment. This is a long comment. This is a long comment. ', 10);
+    left = new Text_Element('Key:', 10, 0, 1);
+    right1 = new Text_Element('Value!', 10, 2);
+    right2 = new Text_Element('More value!', 10, 2);
+    right3 = new Text_Element('Yet more value!', 10, 2);
+    shared1 = new Shared_Line_Element([left, right1]);
+    shared2 = new Shared_Line_Element([left, right2]);
+    shared3 = new Shared_Line_Element([left, right3]);
+    block = new Block_Element([hed, body, shared1, shared2, shared3, comment], 0.2);
+    pdf.add(block);
+    pdf.vertical_space(2);
+    pdf.add(block);
+    pdf.vertical_space(2);
+    pdf.add(block);
+    pdf.add(block);
+    pdf.page_break();
+    pdf.add(block);
+    pdf.page_break();
+    pdf.add(block);
+    pdf.page_break();
+    pdf.add(block);
+    pdf.add(block);
+    pdf.add(shared1);
+    pdf.add(shared1);
+    pdf.add(shared1);
+    pdf.add(shared1);
+    pdf.add(shared1);
+    pdf.add(shared1);
+    pdf.add(shared1);
+    pdf.add(shared1);
+    pdf.add(right2);
+    pdf.add(right2);
+    pdf.add(right2);
+    pdf.add(right2);
+    pdf.add(right2);
+    pdf.add(right2);
+    pdf.add(right2);
+    pdf.add(block);
+    // pdf.header('Configuration Audit');
+    // pdf.normal('This is the result of the configuration audit. It\'s a PDF, made using the PDF maker thing. It\'s starting to feel a bit better but I\'ve some work to do on getting sizes and gaps right.');
+    // pdf.normal('It contains some text');
+    // pdf.file_header('Central\\BM\\BackOffice.ini');
+    // pdf.config_key('AutoExPeriod');
+    // pdf.config_value('BRKLIVE', '1');
+    // pdf.config_value('BRKLT', '30');
+    // pdf.config_comment('The values here don\'t make much sense.')
+    // pdf.normal('To show off the config audit');
+    // for (var a = 0; a < 50; a++) {
+    //   pdf.normal('This is a normal line of text' + a)
+    // }
     pdf.save('Test.pdf');
   }
 
