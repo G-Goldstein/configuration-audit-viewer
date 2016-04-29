@@ -56,8 +56,7 @@ advance_cursor = function(height) {
 write_text = function(size, left, lines, height) {
   return add_to_promised_document(height, function(doc) {
     text_top = doc.text_y + text_height(size);
-    doc.setFont(FONT_FAMILY, FONT_SPECIFIC)
-       .setFontSize(size);
+    doc.setFontSize(size);
     doc.text(MIN_PAGE_X + left, text_top, lines);
     return doc;
   })
@@ -65,11 +64,8 @@ write_text = function(size, left, lines, height) {
 
 add_to_promised_document = function(height, populate_promised_document) {
   return function(doc) {
-    if (height > TOTAL_PAGE_Y) {
-      new Error("Document block too big for page") 
-    };
     promised_doc = Q.fcall(function() {return doc});
-    if (doc.text_y + height > TOTAL_PAGE_Y) {
+    if (!(height > TOTAL_PAGE_Y) && (doc.text_y + height > TOTAL_PAGE_Y)) {
       promised_doc = promised_doc.then(add_page);
     }
     return promised_doc.then(populate_promised_document);
@@ -97,15 +93,14 @@ function flatten(arr) {
   }, []);
 }
 
-function Text_Element(text, size, left=0, right=MAX_PAGE_X) {
+function Text_Element(text, size=10, left=0, right=MAX_PAGE_X) {
   this.text = text;
   this.size = size;
   this.left = left;
   this.right = right;
   this.text_lines = function() {
     doc = new jsPDF('p', 'in', 'letter');
-    lines = doc.setFont(FONT_FAMILY, FONT_SPECIFIC)
-             .setFontSize(this.size)
+    lines = doc.setFontSize(this.size)
              .splitTextToSize(this.text, this.right - this.left);
     return lines;
   }
@@ -116,10 +111,10 @@ function Text_Element(text, size, left=0, right=MAX_PAGE_X) {
 
 function Shared_Line_Element(elements) {
   this.elements = elements;
-  this.height = Math.max(...this.elements
-    .map(function(element) {
+  this.element_heights = this.elements.map(function(element) {
     return element.height;
-  }));
+  })
+  this.height = Math.max(...this.element_heights);
   this.write = write_elements(this.height, elements, false);
   this.advance = advance_cursor(this.height);
 }
@@ -131,16 +126,17 @@ function Block_Element(elements, break_after = 0) {
   }).reduce(function(a, b) {
     return a+b
   }, 0) + break_after;
-  console.log(this.height);
   this.write = write_elements(this.height, elements);
-  this.advance = [];
+  this.advance = advance_cursor(break_after);
 }
 
 Pdf = function(running_elements) {
 
   this.add = function(element) {
-    this.add_task(element.write);
-    this.add_task(element.advance);
+    if (element !== undefined) {
+      this.add_task(element.write);
+      this.add_task(element.advance);
+    }
   }
 
   this.page_break = function() {
@@ -169,6 +165,7 @@ Pdf = function(running_elements) {
 new_document_promise = function(running_elements) {
   promise = function() {
     doc = new jsPDF('p', 'in', 'letter');
+    doc.setFont(FONT_FAMILY, FONT_SPECIFIC);
     doc.running_elements = running_elements;
     set_up_new_page(doc);
     return doc;

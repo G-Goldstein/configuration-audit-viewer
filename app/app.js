@@ -331,7 +331,6 @@ myApp.service('ComparisonService', ['$q', function($q) {
       if (!this.listContainsProperty(combinedOverview, property)) {
         var propertyToAdd = {valueInEnvironment: []}
         propertyToAdd.key = property;
-        propertyToAdd.comment = '';
         combinedOverview[property] = {valueInEnvironment:[]};
         for (var i = 0; i < environmentCount; i++) {
           propertyToAdd.valueInEnvironment[i] = '';
@@ -378,6 +377,7 @@ myApp.service('ComparisonService', ['$q', function($q) {
       var keyValuePairInsert = {}
       keyValuePairInsert.existsInEnvironment = []
       keyValuePairInsert.valueInEnvironment = []
+      keyValuePairInsert.comment = '';
       for (var e = 0; e < environmentCount; e++ ) {
         keyValuePairInsert.existsInEnvironment[e] = false;
         keyValuePairInsert.valueInEnvironment[e] = '';
@@ -542,6 +542,7 @@ myApp.controller('ConfigAuditController', ['$scope', '$log', 'ServerDataService'
   this.comparisonObject = {configFiles: [], databaseTables: []};
   this.loaded = false;
   this.environments = [];
+  this.environmentNames = [];
   this.loading = false;
   self = this;
 
@@ -565,6 +566,9 @@ myApp.controller('ConfigAuditController', ['$scope', '$log', 'ServerDataService'
     this.comparisonObject = {configFiles: [], databaseTables: []};
     ClientDataService.getData(fileList).then(function(response) {
       self.environments = response;
+      self.environmentNames = response.map(function(env) {
+        return env['overview']['Environment'];
+      });
       ComparisonService.createComparisonFileList(self.environments).then(function(response) {
         self.comparisonObject.configFiles = response;
         $scope.$apply();
@@ -631,50 +635,83 @@ myApp.controller('ConfigAuditController', ['$scope', '$log', 'ServerDataService'
   }
 
   this.createPDF = function() {
+
+    block_with_title = function(pdf, title_text_element, content_text_elements, break_after) {
+      if (content_text_elements.length > 0) {
+        full_contents = [title_text_element].concat(content_text_elements);
+        block = new Block_Element(full_contents, break_after);
+        return block;
+      }
+    }
+
     running_elements = [];
     var pdf = new Pdf(running_elements);
-    ele1 = new Text_Element('This is my new text element thing', 10, 1, 3);
-    ele2 = new Text_Element('This is another one, a bit bigger', 10, 4, 6);
-    hed = new Text_Element('This is the header', 16);
-    body = new Text_Element('This is some supporting text to explain the section', 10);
-    comment = new Text_Element('This is a long comment. This is a long comment. This is a long comment. This is a long comment. This is a long comment. This is a long comment. This is a long comment. ', 10);
-    left = new Text_Element('Key:', 10, 0, 1);
-    right1 = new Text_Element('Value!', 10, 2);
-    right2 = new Text_Element('More value!', 10, 2);
-    right3 = new Text_Element('Yet more value!', 10, 2);
-    shared1 = new Shared_Line_Element([left, right1]);
-    shared2 = new Shared_Line_Element([left, right2]);
-    shared3 = new Shared_Line_Element([left, right3]);
-    block = new Block_Element([hed, body, shared1, shared2, shared3, comment], 0.2);
-    pdf.add(block);
-    pdf.vertical_space(2);
-    pdf.add(block);
-    pdf.vertical_space(2);
-    pdf.add(block);
-    pdf.add(block);
-    pdf.page_break();
-    pdf.add(block);
-    pdf.page_break();
-    pdf.add(block);
-    pdf.page_break();
-    pdf.add(block);
-    pdf.add(block);
-    pdf.add(shared1);
-    pdf.add(shared1);
-    pdf.add(shared1);
-    pdf.add(shared1);
-    pdf.add(shared1);
-    pdf.add(shared1);
-    pdf.add(shared1);
-    pdf.add(shared1);
-    pdf.add(right2);
-    pdf.add(right2);
-    pdf.add(right2);
-    pdf.add(right2);
-    pdf.add(right2);
-    pdf.add(right2);
-    pdf.add(right2);
-    pdf.add(block);
+
+    this.comparisonObject.configFiles.map(function(configFile) {
+
+      fileHeader = new Text_Element(configFile.file, 18);
+      fileText = [];
+      for (var key in configFile.dictionary) {
+        keyText = [];
+        dictionary = configFile.dictionary;
+        if (dictionary[key].comment !== '') {
+          keyTitle = new Text_Element(key, 12, 0.2);
+          for (var e = 0; e < this.environmentNames.length; e++) {
+            env = new Text_Element(this.environmentNames[e], 10, 0.3, 2);
+            value = new Text_Element(dictionary[key].valueInEnvironment[e], 10, 2.5);
+            keyText.push(new Shared_Line_Element([env, value]));
+          }
+          keyText.push(new Text_Element(dictionary[key].comment, 10, 0.2));
+          keyBlock = block_with_title(pdf, keyTitle, keyText, 0.3);
+          if (keyBlock !== undefined) {
+            fileText.push(keyBlock);
+          }
+        }
+      }
+      pdf.add(block_with_title(pdf, fileHeader, fileText), 0.2);
+    }, this);
+    // ele1 = new Text_Element('This is my new text element thing', 10, 1, 3);
+    // ele2 = new Text_Element('This is another one, a bit bigger', 10, 4, 6);
+    // hed = new Text_Element('This is the header', 16);
+    // body = new Text_Element('This is some supporting text to explain the section', 10);
+    // comment = new Text_Element('This is a long comment. This is a long comment. This is a long comment. This is a long comment. This is a long comment. This is a long comment. This is a long comment. ', 10);
+    // left = new Text_Element('Key:', 10, 0, 1);
+    // right1 = new Text_Element('Value!', 10, 2);
+    // right2 = new Text_Element('More value!', 10, 2);
+    // right3 = new Text_Element('Yet more value!', 10, 2);
+    // shared1 = new Shared_Line_Element([left, right1]);
+    // shared2 = new Shared_Line_Element([left, right2]);
+    // shared3 = new Shared_Line_Element([left, right3]);
+    // block = new Block_Element([hed, body, shared1, shared2, shared3, comment], 0.2);
+    // pdf.add(block);
+    // pdf.vertical_space(2);
+    // pdf.add(block);
+    // pdf.vertical_space(2);
+    // pdf.add(block);
+    // pdf.add(block);
+    // pdf.page_break();
+    // pdf.add(block);
+    // pdf.page_break();
+    // pdf.add(block);
+    // pdf.page_break();
+    // pdf.add(block);
+    // pdf.add(block);
+    // pdf.add(shared1);
+    // pdf.add(shared1);
+    // pdf.add(shared1);
+    // pdf.add(shared1);
+    // pdf.add(shared1);
+    // pdf.add(shared1);
+    // pdf.add(shared1);
+    // pdf.add(shared1);
+    // pdf.add(right2);
+    // pdf.add(right2);
+    // pdf.add(right2);
+    // pdf.add(right2);
+    // pdf.add(right2);
+    // pdf.add(right2);
+    // pdf.add(right2);
+    // pdf.add(block);
     // pdf.header('Configuration Audit');
     // pdf.normal('This is the result of the configuration audit. It\'s a PDF, made using the PDF maker thing. It\'s starting to feel a bit better but I\'ve some work to do on getting sizes and gaps right.');
     // pdf.normal('It contains some text');
