@@ -676,14 +676,18 @@ myApp.controller('ConfigAuditController', ['$scope', '$log', 'ServerDataService'
 
       fileHeader = new Text_Element(configFile.file, 18);
       fileText = report_each_comment_in_dictionary(configFile.dictionary);
-      pdf.add(block_with_title(pdf, fileHeader, fileText), 0.2);
+      profile_blocks = [];
 
       for (var p = 0; p < configFile.profiles.length; p++) {
         profile = configFile.profiles[p]
         profileHeader = new Text_Element(profile.profile, 16);
-        fileText = report_each_comment_in_dictionary(profile.dictionary);
-        pdf.add(block_with_title(pdf, profileHeader, fileText));
+        profileText = report_each_comment_in_dictionary(profile.dictionary);
+        profile_block = block_with_title(pdf, profileHeader, profileText);
+        if (profile_block !== undefined) {
+          profile_blocks.push(profile_block);
+        }
       }
+      pdf.add(block_with_title(pdf, fileHeader, fileText.concat(profile_blocks)), 0.2);
 
     }, this);
     
