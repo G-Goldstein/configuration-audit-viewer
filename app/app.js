@@ -649,26 +649,42 @@ myApp.controller('ConfigAuditController', ['$scope', '$log', 'ServerDataService'
 
     this.comparisonObject.configFiles.map(function(configFile) {
 
-      fileHeader = new Text_Element(configFile.file, 18);
-      fileText = [];
-      for (var key in configFile.dictionary) {
-        keyText = [];
-        dictionary = configFile.dictionary;
+      environmentNames = this.environmentNames;
+
+      report_config_comment = function(dictionary, key, commentText) {
+        keyText = []
         if (dictionary[key].comment !== '') {
           keyTitle = new Text_Element(key, 12, 0.2);
-          for (var e = 0; e < this.environmentNames.length; e++) {
-            env = new Text_Element(this.environmentNames[e], 10, 0.3, 2);
+          for (var e = 0; e < environmentNames.length; e++) {
+            env = new Text_Element(environmentNames[e], 10, 0.3, 2);
             value = new Text_Element(dictionary[key].valueInEnvironment[e], 10, 2.5);
             keyText.push(new Shared_Line_Element([env, value]));
           }
           keyText.push(new Text_Element(dictionary[key].comment, 10, 0.2));
           keyBlock = block_with_title(pdf, keyTitle, keyText, 0.3);
-          if (keyBlock !== undefined) {
-            fileText.push(keyBlock);
-          }
+          commentText.push(keyBlock);
         }
       }
+
+      report_each_comment_in_dictionary = function(dictionary) {
+        commentText = [];
+        for (var key in dictionary) {
+          report_config_comment(dictionary, key, commentText);
+        }
+        return commentText;
+      }
+
+      fileHeader = new Text_Element(configFile.file, 18);
+      fileText = report_each_comment_in_dictionary(configFile.dictionary);
       pdf.add(block_with_title(pdf, fileHeader, fileText), 0.2);
+
+      for (var p = 0; p < configFile.profiles.length; p++) {
+        profile = configFile.profiles[p]
+        profileHeader = new Text_Element(profile.profile, 16);
+        fileText = report_each_comment_in_dictionary(profile.dictionary);
+        pdf.add(block_with_title(pdf, profileHeader, fileText));
+      }
+
     }, this);
     
     pdf.save('Test.pdf');
