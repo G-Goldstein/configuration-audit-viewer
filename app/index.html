@@ -9,9 +9,13 @@
   <title>Configuration audit</title>
   
   <link rel="stylesheet" href="app.css">
+  <script src="jspdf/jspdf.js"></script>
+  <script src="q/q.js"></script>
   <script src="bower_components/angular/angular.js"></script>
   <script src="bower_components/angular-route/angular-route.js"></script>
   <script src="bower_components/angular-mocks/angular-mocks.js"></script>
+  <script src="bower_components/angular-elastic/elastic.js"></script>
+  <script src="pdfgen.js"></script>
   <script src="app.js"></script>
 </head>
 <body>
@@ -35,6 +39,7 @@
             <tr ng-class="{ evenRow: !($index % 2), oddRow: !!($index % 2) }" ng-repeat="property in filteredKeys = (configViewer.comparisonObject.overview.values | filter:UNKNOWN)">
               <td class="key value-{{profile.dictionary[key].color}}">{{property.key}}</td>
               <td ng-repeat="value in property.valueInEnvironment track by $index">{{value}}</td>
+              <td></td>
             </tr>
             <tr ng-hide="filteredKeys.length" class="evenRow"><td class="key value-none">No entries<td></tr>
           </table>
@@ -68,6 +73,7 @@
               <tr ng-class="{ evenRow: !($index % 2), oddRow: !!($index % 2) }" ng-repeat="key in configFile.keys | dictionaryContentFilter:filterText:configFile">
                 <td class="key value-{{configFile.dictionary[key].color}}">{{key}}</td>
                 <td ng-repeat="value in configFile.dictionary[key].valueInEnvironment track by $index">{{value}}</td>
+                <td><div class="boxSizingBorder"><textarea class="fullTextArea" msd-elastic="" ng-model="configFile.dictionary[key].comment"></textarea></div></td>
               </tr>
             </table></div>
           <ul ng-show="configFile.show">
@@ -77,6 +83,7 @@
                   <tr ng-class="{ evenRow: !($index % 2), oddRow: !!($index % 2) }" ng-repeat="key in profile.keys | dictionaryContentFilter:filterText:configFile:profile">
                     <td class="key value-{{profile.dictionary[key].color}}">{{key}}</td>
                     <td ng-repeat="value in profile.dictionary[key].valueInEnvironment track by $index">{{value}}</td>
+                    <td><div class="boxSizingBorder"><textarea class="fullTextArea" msd-elastic="" ng-model="profile.dictionary[key].comment"></textarea></div></td>
                   </tr>
                   <tr ng-hide="profile.keys.length" class="evenRow"><td class="key value-none">No entries<td></tr>
                 </table>
@@ -87,6 +94,7 @@
         </li>
       </ul>
     </div>
+    <button ng-click="configViewer.createPDF()">Create PDF</button>
   </article>
 </section>
   
