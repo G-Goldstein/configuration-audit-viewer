@@ -9,7 +9,8 @@
   <title>Configuration audit</title>
   
   <link rel="stylesheet" href="app.css">
-  <script src="jspdf/jspdf.js"></script>
+  <script src="reportgen/download.js"></script>
+  <script src="reportgen/generation.js"></script>
   <script src="q/q.js"></script>
   <script src="bower_components/angular/angular.js"></script>
   <script src="bower_components/angular-route/angular-route.js"></script>
@@ -26,7 +27,7 @@
   </header>
   <article ng-controller="ConfigAuditController as configViewer">
     <input type="file" multiple file-model="files" accept=".json"/>
-    <label>Filter: </label><input ng-model="filterText"/>
+    <label>Filter: </label><input ng-model="filterText"/><button ng-click="configViewer.createReport()">Create Report</button>
     <p>
     <div ng-show="!configViewer.loaded && !configViewer.loading">Select one or more files to view or compare.</div>
     <div ng-show="configViewer.loading">Loading...</div>
@@ -94,7 +95,6 @@
         </li>
       </ul>
     </div>
-    <button ng-click="configViewer.createPDF()">Create PDF</button>
   </article>
 </section>
   

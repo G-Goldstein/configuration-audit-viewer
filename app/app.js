@@ -634,64 +634,62 @@ myApp.controller('ConfigAuditController', ['$scope', '$log', 'ServerDataService'
     }
   }
 
-  this.createPDF = function() {
+  this.createReport = function() {
 
-    block_with_title = function(pdf, title_text_element, content_text_elements, break_after) {
-      if (content_text_elements.length > 0) {
-        full_contents = [title_text_element].concat(content_text_elements);
-        block = new Block_Element(full_contents, break_after);
-        return block;
-      }
-    }
-
-    running_elements = [];
-    var pdf = new Pdf(running_elements);
+    var htmlElements = new HtmlElementArray();
 
     this.comparisonObject.configFiles.map(function(configFile) {
 
-      environmentNames = this.environmentNames;
+      var environmentNames = this.environmentNames;
 
-      report_config_comment = function(dictionary, key, commentText) {
-        keyText = []
+      report_config_comment = function(dictionary, key) {
+        var configElements = new HtmlElementArray();
         if (dictionary[key].comment !== '') {
-          keyTitle = new Text_Element(key, 12, 0.2);
+          var rows = new HtmlElementArray();
           for (var e = 0; e < environmentNames.length; e++) {
-            env = new Text_Element(environmentNames[e], 10, 0.3, 2);
-            value = new Text_Element(dictionary[key].valueInEnvironment[e], 10, 2.5);
-            keyText.push(new Shared_Line_Element([env, value]));
+            var env = new HtmlText(environmentNames[e], 'b');
+            var value  = new HtmlText(dictionary[key].valueInEnvironment[e]);
+            var row = new HtmlElementArray();
+            row.push(env);
+            row.push(value);
+            rows.push(row);
           }
-          keyText.push(new Text_Element(dictionary[key].comment, 10, 0.2));
-          keyBlock = block_with_title(pdf, keyTitle, keyText, 0.3);
-          commentText.push(keyBlock);
+          var comparisonTable = new HtmlTable(rows);
+          configElements.push(new HtmlText(key, 'h2'));
+          configElements.push(comparisonTable);
+          configElements.push(new HtmlText(dictionary[key].comment, 'p'));
         }
+        return configElements;
       }
 
       report_each_comment_in_dictionary = function(dictionary) {
-        commentText = [];
+        var dictionaryElements = new HtmlElementArray();
         for (var key in dictionary) {
-          report_config_comment(dictionary, key, commentText);
+          element = report_config_comment(dictionary, key);
+          dictionaryElements.push(element);
         }
-        return commentText;
+        return dictionaryElements;
       }
 
-      fileHeader = new Text_Element(configFile.file, 18);
-      fileText = report_each_comment_in_dictionary(configFile.dictionary);
-      profile_blocks = [];
+      var fileHeader = new HtmlText(configFile.file, 'h1');
+      var fileHtmlElements = report_each_comment_in_dictionary(configFile.dictionary);
 
       for (var p = 0; p < configFile.profiles.length; p++) {
-        profile = configFile.profiles[p]
-        profileHeader = new Text_Element(profile.profile, 16);
-        profileText = report_each_comment_in_dictionary(profile.dictionary);
-        profile_block = block_with_title(pdf, profileHeader, profileText);
-        if (profile_block !== undefined) {
-          profile_blocks.push(profile_block);
-        }
-      }
-      pdf.add(block_with_title(pdf, fileHeader, fileText.concat(profile_blocks)), 0.2);
+        var profile = configFile.profiles[p]
+        var profileHeader = new HtmlText(profile.profile, 'h2');
+        var profileText = report_each_comment_in_dictionary(profile.dictionary);
+        var profileList = new HtmlElementListWithHeader(profileHeader, profileText);
+
+        fileHtmlElements.push(profileList);
+      };
+
+      var fileList = new HtmlElementListWithHeader(fileHeader, fileHtmlElements);
+      htmlElements.push(fileList);
 
     }, this);
     
-    pdf.save('Test.pdf');
+    download_html('report.html', htmlElements.html());
+
   }
 
   $scope.filterText = ''
