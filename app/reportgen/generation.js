@@ -5,9 +5,23 @@ function HtmlText(text, tag='') {
 		if (this.tag === '') {
 			return this.text;
 		}
-		return '<' + this.tag + '>'
+		return '<' + this.tag + '>\n'
 		     + this.text
-		     + '</' + this.tag + '>';
+		     + '</' + this.tag + '>\n';
+	}
+}
+
+function HtmlWrap(htmlElement, tag, htmlClass='') {
+	this.htmlElement = htmlElement;
+	this.tag = tag;
+	this.htmlClass = htmlClass;
+	this.html = function() {
+		if (this.htmlElement.html() !== "") {
+			return '<' + this.tag + ' class="' + this.htmlClass + '">\n'
+				+ this.htmlElement.html()
+				+ '</' + this.tag + '>\n'
+		}
+		return "";
 	}
 }
 
@@ -16,8 +30,6 @@ function HtmlTable(twoDHtmlElementArray) {
 	this.html = function() {
 		tableContent = this.twoDHtmlElementArray.map(function(row) {
 			rowContent = row.map(function(cell) {
-				result = new HtmlText(cell.html(), 'td');
-				return result;
 				return new HtmlText(cell.html(), 'td');
 			});
 			return new HtmlText(rowContent.html(), 'tr');

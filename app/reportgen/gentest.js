@@ -13,7 +13,7 @@ describe('generation', function() {
     it('should convert tagged HtmlText objects to HTML', function() {
       paragraphText = "Paragraph";
       paragraph = new HtmlText(paragraphText, "p");
-      paragraphHtml = "<p>" + paragraphText + "</p>";
+      paragraphHtml = "<p>" + paragraphText + "</p>\n";
       expect(paragraph.html()).toBe(paragraphHtml);
     })
 
@@ -29,9 +29,9 @@ describe('generation', function() {
       EleList = new HtmlElementArray()
       EleList.push(pEle);
       EleList.push(p2Ele);
-      EleListResult = "<p>Paragraph</p><p>Paragraph too</p>";
+      EleListResult = "<p>Paragraph</p>\n<p>Paragraph too</p>\n";
       a = new HtmlText('a','p');
-      aParagraph = "<p>a</p>";
+      aParagraph = "<p>a</p>\n";
     })
 
     it('should store html elements in an internal array', function() {
@@ -107,7 +107,7 @@ describe('generation', function() {
       tableContent.push(row1);
       tableContent.push(row2);
       table = new HtmlTable(tableContent);
-      expectedResult = "<table><tr><td>a</td><td>b</td></tr><tr><td>c</td><td>d</td></tr></table>"
+      expectedResult = "<table>\n<tr>\n<td>a</td>\n<td>b</td>\n</tr>\n<tr>\n<td>c</td>\n<td>d</td>\n</tr>\n</table>\n"
     })
 
     it('should convert a two-dimensional Html Element Array to a table', function() {

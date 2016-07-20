@@ -634,9 +634,14 @@ myApp.controller('ConfigAuditController', ['$scope', '$log', 'ServerDataService'
     }
   }
 
-  this.createReport = function() {
+  this.generateReport = function(css) {
 
     var htmlElements = new HtmlElementArray();
+
+    var style = new HtmlText(css, 'style');
+    var head = new HtmlWrap(style, 'head')
+
+    htmlElements.push(head);
 
     this.comparisonObject.configFiles.map(function(configFile) {
 
@@ -655,11 +660,11 @@ myApp.controller('ConfigAuditController', ['$scope', '$log', 'ServerDataService'
             rows.push(row);
           }
           var comparisonTable = new HtmlTable(rows);
-          configElements.push(new HtmlText(key, 'h2'));
+          configElements.push(new HtmlText(key, 'h3'));
           configElements.push(comparisonTable);
           configElements.push(new HtmlText(dictionary[key].comment, 'p'));
         }
-        return configElements;
+        return new HtmlWrap(configElements, 'div', 'config');
       }
 
       report_each_comment_in_dictionary = function(dictionary) {
@@ -680,16 +685,33 @@ myApp.controller('ConfigAuditController', ['$scope', '$log', 'ServerDataService'
         var profileText = report_each_comment_in_dictionary(profile.dictionary);
         var profileList = new HtmlElementListWithHeader(profileHeader, profileText);
 
+        profileList = new HtmlWrap(profileList, 'div', 'profile')
+
         fileHtmlElements.push(profileList);
       };
 
       var fileList = new HtmlElementListWithHeader(fileHeader, fileHtmlElements);
+      fileList = new HtmlWrap(fileList, 'div', 'file')
       htmlElements.push(fileList);
 
     }, this);
-    
+
     download_html('report.html', htmlElements.html());
 
+  }
+
+  this.createReport = function() {
+    var cssFile = new XMLHttpRequest();
+    cssFile.open("GET","reportgen/style.css",true);
+    cssFile.send();
+
+    var self = this;
+
+    cssFile.onreadystatechange = function(){
+      if (cssFile.readyState == 4 && cssFile.status == 200) {
+        self.generateReport(cssFile.responseText);
+      }
+    }
   }
 
   $scope.filterText = ''
