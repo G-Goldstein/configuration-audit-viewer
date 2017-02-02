@@ -634,7 +634,7 @@ myApp.controller('ConfigAuditController', ['$scope', '$log', 'ServerDataService'
     }
   }
 
-  this.generateReport = function(css) {
+  this.generateReport = function(css, allrows) {
 
     var htmlElements = new HtmlElementArray();
 
@@ -649,7 +649,7 @@ myApp.controller('ConfigAuditController', ['$scope', '$log', 'ServerDataService'
 
       report_config_comment = function(dictionary, key) {
         var configElements = new HtmlElementArray();
-        if (dictionary[key].comment !== '') {
+        if (dictionary[key].comment !== '' || allrows) {
           var rows = new HtmlElementArray();
           for (var e = 0; e < environmentNames.length; e++) {
             var env = new HtmlText(environmentNames[e], 'b');
@@ -662,7 +662,9 @@ myApp.controller('ConfigAuditController', ['$scope', '$log', 'ServerDataService'
           var comparisonTable = new HtmlTable(rows);
           configElements.push(new HtmlText(key, 'h3'));
           configElements.push(comparisonTable);
-          configElements.push(new HtmlText(dictionary[key].comment, 'p'));
+          if (dictionary[key].comment !== '') {
+            configElements.push(new HtmlText(dictionary[key].comment, 'p'));
+          }
         }
         return new HtmlWrap(configElements, 'div', 'config');
       }
@@ -700,7 +702,7 @@ myApp.controller('ConfigAuditController', ['$scope', '$log', 'ServerDataService'
 
   }
 
-  this.createReport = function() {
+  this.createReport = function(allrows) {
     var cssFile = new XMLHttpRequest();
     cssFile.open("GET","reportgen/style.css",true);
     cssFile.send();
@@ -709,7 +711,7 @@ myApp.controller('ConfigAuditController', ['$scope', '$log', 'ServerDataService'
 
     cssFile.onreadystatechange = function(){
       if (cssFile.readyState == 4 && cssFile.status == 200) {
-        self.generateReport(cssFile.responseText);
+        self.generateReport(cssFile.responseText, allrows);
       }
     }
   }
