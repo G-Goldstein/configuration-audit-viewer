@@ -26,9 +26,7 @@
   </header>
   <article ng-controller="ConfigAuditController as configViewer">
     <input type="file" multiple file-model="files" accept=".json"/>
-    <label>Filter: </label><input ng-model="filterText"/><button ng-click="configViewer.createReport(false)">Create Commented Report</button>
-    <p>
-    <label>Filter: </label><input ng-model="filterText"/><button ng-click="configViewer.createReport(true)">Create Full Report</button>
+    <label>Filter: </label><input ng-model="filterText"/><button ng-click="configViewer.createReport(false)">Create Commented Report</button><button ng-click="configViewer.createReport(true)">Create Full Report</button>
     <p>
     <div ng-show="!configViewer.loaded && !configViewer.loading">Select one or more files to view or compare.</div>
     <div ng-show="configViewer.loading">Loading...</div>

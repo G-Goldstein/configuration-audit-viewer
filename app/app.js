@@ -639,7 +639,7 @@ myApp.controller('ConfigAuditController', ['$scope', '$log', 'ServerDataService'
     var htmlElements = new HtmlElementArray();
 
     var style = new HtmlText(css, 'style');
-    var head = new HtmlWrap(style, 'head')
+    var head = new HtmlWrap(style, 'head');
 
     htmlElements.push(head);
 
